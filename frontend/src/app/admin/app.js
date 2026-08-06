@@ -219,6 +219,7 @@ class WebowoAdmin extends HTMLElement {
         <li><a data-page="contacts">📨 Wiadomości</a></li>
         <li><a data-page="settings">⚙️ Ustawienia</a></li>
         <li><a data-page="backups">💾 Kopie zapasowe</a></li>
+        ${this.user?.role === 'admin' ? '<li><a data-page="users">👥 Użytkownicy</a></li>' : ''}
         <li><a id="logout">🚪 Wyloguj</a></li>
       </ul>
     `;
@@ -253,6 +254,9 @@ class WebowoAdmin extends HTMLElement {
         break;
       case 'backups':
         await this.loadBackups(main);
+        break;
+      case 'users':
+        await this.loadUsers(main);
         break;
     }
   }
@@ -762,6 +766,50 @@ class WebowoAdmin extends HTMLElement {
       }));
     } catch (err) {
       main.querySelector('#backups-table').innerHTML = `<div class="empty">Błąd: ${err.message}</div>`;
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ========== Users ==========
+  async loadUsers(main) {
+    if (this.user?.role !== 'admin') {
+      main.innerHTML = `<div class="toolbar"><h2>👥 Użytkownicy</h2></div><div class="empty">Brak uprawnień.</div>`;
+      return;
+    }
+    main.innerHTML = `
+      <div class="toolbar"><h2>👥 Użytkownicy</h2></div>
+      <div id="users-table" class="table-wrap"><div class="empty">Ładowanie...</div></div>
+    `;
+    try {
+      const res = await this.apiFetch('/auth/users');
+      if (res.status === 404) {
+        main.querySelector('#users-table').innerHTML = `<div class="empty">Funkcja wymaga endpointu GET /api/v2/auth/users</div>`;
+        return;
+      }
+      const result = await res.json();
+      const users = result.data || [];
+      const table = main.querySelector('#users-table');
+      if (!users.length) {
+        table.innerHTML = `<div class="empty">Brak użytkowników.</div>`;
+        return;
+      }
+      table.innerHTML = `
+        <table>
+          <thead><tr><th>Nazwa użytkownika</th><th>Email</th><th>Rola</th><th>Aktywny</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td>${this.escapeHtml(u.username)}</td>
+                <td>${this.escapeHtml(u.email)}</td>
+                <td><span class="badge badge-${u.role === 'admin' ? 'published' : 'draft'}">${this.escapeHtml(u.role)}</span></td>
+                <td>${u.is_active ? '✅' : '❌'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (err) {
+      main.querySelector('#users-table').innerHTML = `<div class="empty">Funkcja wymaga endpointu GET /api/v2/auth/users</div>`;
       showToast(err.message, 'error');
     }
   }

@@ -2,6 +2,8 @@
 // Section: Footer
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionFooter extends HTMLElement {
   constructor() {
     super();
@@ -10,9 +12,9 @@ class WebowoSectionFooter extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const brand = data.brand || 'Matys WebDev';
-    const tagline = data.tagline || 'Tworzę strony, które działają.';
-    const copyright = data.copyright || '© 2026 Matys WebDev. Wszelkie prawa zastrzeżone.';
+    const brand = data.brand || t('footer_brand');
+    const tagline = data.tagline || t('footer_tagline');
+    const copyright = data.copyright || t('footer_copyright');
 
     this.shadowRoot.innerHTML = `
       <style>

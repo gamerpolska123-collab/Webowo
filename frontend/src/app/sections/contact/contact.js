@@ -2,6 +2,8 @@
 // Section: Contact
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionContact extends HTMLElement {
   constructor() {
     super();
@@ -10,7 +12,7 @@ class WebowoSectionContact extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Kontakt';
+    const title = data.title || t('contact_title');
     const email = data.email || 'kontakt@matys.net.pl';
     const phone = data.phone || '+48 123 456 789';
 
@@ -34,22 +36,22 @@ class WebowoSectionContact extends HTMLElement {
       <section class="contact" id="contact">
         <div class="info">
           <h2>${title}</h2>
-          <p>Masz pomysł na stronę? Napisz do mnie — odpowiadam w ciągu 24h.</p>
+          <p>${t('contact_info')}</p>
           <div class="detail">
             <div class="detail-icon">📧</div>
-            <div><strong>Email</strong><br><a href="mailto:${email}" style="color:var(--color-primary);text-decoration:none;">${email}</a></div>
+            <div><strong>${t('contact_email_label')}</strong><br><a href="mailto:${email}" style="color:var(--color-primary);text-decoration:none;">${email}</a></div>
           </div>
           <div class="detail">
             <div class="detail-icon">📱</div>
-            <div><strong>Telefon</strong><br>${phone}</div>
+            <div><strong>${t('contact_phone_label')}</strong><br>${phone}</div>
           </div>
         </div>
         <form id="contact-form">
-          <input type="text" name="name" placeholder="Imię i nazwisko" required>
-          <input type="email" name="email" placeholder="Email" required>
-          <input type="text" name="subject" placeholder="Temat">
-          <textarea name="message" rows="5" placeholder="Twoja wiadomość..." required></textarea>
-          <button type="submit">Wyślij wiadomość</button>
+          <input type="text" name="name" placeholder="${t('contact_name_placeholder')}" required>
+          <input type="email" name="email" placeholder="${t('contact_email_placeholder')}" required>
+          <input type="text" name="subject" placeholder="${t('contact_subject_placeholder')}">
+          <textarea name="message" rows="5" placeholder="${t('contact_message_placeholder')}" required></textarea>
+          <button type="submit">${t('contact_submit')}</button>
           <div id="form-status"></div>
         </form>
       </section>
@@ -73,14 +75,14 @@ class WebowoSectionContact extends HTMLElement {
         });
         const result = await res.json();
         if (result.success) {
-          status.textContent = '✅ Wiadomość wysłana! Odpowiem w ciągu 24h.';
+          status.textContent = t('contact_success');
           status.className = 'success';
           form.reset();
         } else {
           throw new Error(result.error);
         }
       } catch (err) {
-        status.textContent = '❌ ' + (err.message || 'Błąd wysyłania. Spróbuj ponownie.');
+        status.textContent = t('contact_error');
         status.className = 'error';
       }
     });

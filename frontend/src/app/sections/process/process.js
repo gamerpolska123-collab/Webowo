@@ -2,6 +2,8 @@
 // Section: Process
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionProcess extends HTMLElement {
   constructor() {
     super();
@@ -10,12 +12,12 @@ class WebowoSectionProcess extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Proces współpracy';
+    const title = data.title || t('process_title');
     const steps = data.steps || [
-      { title: 'Konsultacja', desc: 'Omawiamy Twoje potrzeby i cele.' },
-      { title: 'Projekt', desc: 'Tworzę mockupy i prototypy.' },
-      { title: 'Development', desc: 'Kodowanie zgodnie z najlepszymi praktykami.' },
-      { title: 'Wdrożenie', desc: 'Deploy, testy, szkolenie.' }
+      { title: t('process_step1_title'), desc: t('process_step1_desc') },
+      { title: t('process_step2_title'), desc: t('process_step2_desc') },
+      { title: t('process_step3_title'), desc: t('process_step3_desc') },
+      { title: t('process_step4_title'), desc: t('process_step4_desc') }
     ];
 
     this.shadowRoot.innerHTML = `

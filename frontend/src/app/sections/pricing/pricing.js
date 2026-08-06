@@ -2,6 +2,8 @@
 // Section: Pricing
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionPricing extends HTMLElement {
   constructor() {
     super();
@@ -10,11 +12,11 @@ class WebowoSectionPricing extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Cennik';
+    const title = data.title || t('pricing_title');
     const plans = data.plans || [
-      { name: 'Starter', price: '999', period: 'PLN', features: ['1 strona','Responsywność','Podstawowe SEO','Kontakt formularz'], popular: false },
-      { name: 'Professional', price: '2499', period: 'PLN', features: ['Do 5 podstron','CMS','Zaawansowane SEO','Analityka','Wsparcie 30 dni'], popular: true },
-      { name: 'Enterprise', price: 'Custom', period: '', features: ['Dedykowane rozwiązanie','Priorytetowe wsparcie','SLA','Dedykowany opiekun'], popular: false }
+      { name: t('pricing_plan1_name'), price: '999', period: 'PLN', features: [t('pricing_plan1_feature1'), t('pricing_plan1_feature2'), t('pricing_plan1_feature3'), t('pricing_plan1_feature4')], popular: false },
+      { name: t('pricing_plan2_name'), price: '2499', period: 'PLN', features: [t('pricing_plan2_feature1'), t('pricing_plan2_feature2'), t('pricing_plan2_feature3'), t('pricing_plan2_feature4'), t('pricing_plan2_feature5')], popular: true },
+      { name: t('pricing_plan3_name'), price: 'Custom', period: '', features: [t('pricing_plan3_feature1'), t('pricing_plan3_feature2'), t('pricing_plan3_feature3'), t('pricing_plan3_feature4')], popular: false }
     ];
 
     this.shadowRoot.innerHTML = `
@@ -41,13 +43,13 @@ class WebowoSectionPricing extends HTMLElement {
         <div class="grid">
           ${plans.map(plan => `
             <div class="card ${plan.popular ? 'popular' : ''}">
-              ${plan.popular ? '<div class="badge">Najpopularniejszy</div>' : ''}
+              ${plan.popular ? `<div class="badge">${t('pricing_badge_popular')}</div>` : ''}
               <div class="name">${plan.name}</div>
               <div class="price">${plan.price} <span>${plan.period}</span></div>
               <ul>
                 ${plan.features.map(f => `<li>${f}</li>`).join('')}
               </ul>
-              <a class="cta" href="#contact">Wybieram</a>
+              <a class="cta" href="#contact">${t('pricing_cta')}</a>
             </div>
           `).join('')}
         </div>

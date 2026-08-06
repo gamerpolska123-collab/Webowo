@@ -51,16 +51,12 @@
 - [x] Media Library – lista z podglądem, usuwanie ✅ (Tura 1)
 - [x] Contacts – lista, zmiana statusu, usuwanie ✅ (Tura 1)
 - [x] Settings – edycja inline, zapis per key ✅ (Tura 1)
-- [ ] User Management – lista użytkowników, role (admin/editor)
+- [x] User Management – lista użytkowników, role (admin/editor) ✅ (Tura 2/3)
 - [x] Backup Manager – lista, tworzenie, przywracanie, pobieranie ✅ (Tura 1)
 
-### 2. Podłączyć i18n do sekcji landing page
+### 2. Podłączyć i18n do sekcji landing page ✅ (Tura 3)
 **Lokalizacja:** `frontend/src/app/sections/*/*.js`  
-**Problem:** Sekcje używają hardcoded stringów zamiast `i18n.t('key')`.  
-**Rozwiązanie:**
-- Przepisać wszystkie stringi w sekcjach na klucze i18n
-- Rozszerzyć `pl.json` / `en.json` o brakujące klucze
-- Dodać przełącznik języka w nawigacji
+**Status:** Wszystkie sekcje przepisane na `t('key')`. Przełącznik PL/EN w nav działa.
 
 ### 3. Dodać walidację formularza kontaktowego (frontend)
 **Lokalizacja:** `frontend/src/app/sections/contact/contact.js`  

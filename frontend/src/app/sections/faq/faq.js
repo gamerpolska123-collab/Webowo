@@ -2,6 +2,8 @@
 // Section: FAQ
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionFaq extends HTMLElement {
   constructor() {
     super();
@@ -10,12 +12,12 @@ class WebowoSectionFaq extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'FAQ';
+    const title = data.title || t('faq_title');
     const items = data.items || [
-      { q: 'Ile trwa realizacja strony?', a: 'Standardowy projekt trwa 2-4 tygodnie.' },
-      { q: 'Czy strona będzie responsywna?', a: 'Tak, wszystkie strony są w pełni responsywne.' },
-      { q: 'Czy oferujesz wsparcie po wdrożeniu?', a: 'Tak, oferuję pakiety wsparcia technicznego.' },
-      { q: 'Jakie technologie używasz?', a: 'Nowoczesny stack: HTML5, CSS3, JS, Node.js, SQLite.' }
+      { q: t('faq_q1'), a: t('faq_a1') },
+      { q: t('faq_q2'), a: t('faq_a2') },
+      { q: t('faq_q3'), a: t('faq_a3') },
+      { q: t('faq_q4'), a: t('faq_a4') }
     ];
 
     this.shadowRoot.innerHTML = `
