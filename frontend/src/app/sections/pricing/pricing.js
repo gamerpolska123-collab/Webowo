@@ -11,6 +11,16 @@ class WebowoSectionPricing extends HTMLElement {
   }
 
   connectedCallback() {
+    this.render();
+    this._onI18nChange = () => this.render();
+    window.addEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  render() {
     const data = this.data || {};
     const title = data.title || t('pricing_title');
     const plans = data.plans || [

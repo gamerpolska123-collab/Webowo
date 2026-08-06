@@ -2,6 +2,8 @@
 // Layout Component: Footer
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoLayoutFooter extends HTMLElement {
   constructor() {
     super();
@@ -20,15 +22,15 @@ class WebowoLayoutFooter extends HTMLElement {
       </style>
       <footer>
         <div class="col">
-          <h4>Webowo</h4>
-          <p style="color:var(--color-muted);margin:0;">Tworzymy nowoczesne strony internetowe.</p>
+          <h4>${t('footer_brand')}</h4>
+          <p style="color:var(--color-muted);margin:0;">${t('footer_tagline')}</p>
         </div>
         <div class="col">
-          <h4>Nawigacja</h4>
-          <a href="/#hero">Strona główna</a>
-          <a href="/#about">O mnie</a>
-          <a href="/#services">Usługi</a>
-          <a href="/#contact">Kontakt</a>
+          <h4>${t('nav_home')}</h4>
+          <a href="/#hero">${t('nav_home')}</a>
+          <a href="/#about">${t('nav_about')}</a>
+          <a href="/#services">${t('nav_services')}</a>
+          <a href="/#contact">${t('nav_contact')}</a>
         </div>
         <div class="col">
           <h4>Social</h4>

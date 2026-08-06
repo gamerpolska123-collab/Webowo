@@ -8,9 +8,19 @@ class WebowoSectionHero extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._onI18nChange = () => this.render();
   }
 
   connectedCallback() {
+    this.render();
+    window.addEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  render() {
     const data = this.data || {};
     const title = data.title || t('hero_title');
     const subtitle = data.subtitle || t('hero_subtitle');

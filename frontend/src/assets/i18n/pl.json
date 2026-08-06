@@ -80,5 +80,8 @@
   "contact_error": "❌ Błąd wysyłania. Spróbuj ponownie.",
   "footer_brand": "Matys WebDev",
   "footer_tagline": "Tworzę strony, które działają.",
-  "footer_copyright": "© 2026 Matys WebDev. Wszelkie prawa zastrzeżone."
+  "footer_copyright": "© 2026 Matys WebDev. Wszelkie prawa zastrzeżone.",
+  "contact_error_name": "Imię musi mieć min. 2 znaki",
+  "contact_error_email": "Podaj poprawny adres email",
+  "contact_error_message": "Wiadomość musi mieć min. 10 znaków"
 }

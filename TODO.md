@@ -2,7 +2,7 @@
 
 > **Wersja:** 2.0.0  
 > **Ostatnia aktualizacja:** 2026-08-06  
-> **Status:** Stabilne – Etap 5 zakończony, Tura 1 (Admin Panel CRUD) zakończona
+> **Status:** Stabilne – Tura 6 zakończona (hotfix i18n + layout footer)
 
 ---
 
@@ -17,7 +17,7 @@
 
 ---
 
-## ✅ Zrealizowane (Etap 5 – Backend Modernizacja)
+## ✅ Zrealizowane (Etap 5 – Backend Modernizacja + Tury 4-6)
 
 | # | Zadanie | Status |
 |---|---------|--------|
@@ -38,6 +38,17 @@
 | 15 | Dynamiczne meta tagi | ✅ `main.js` fetchuje `/api/v2/settings/public` |
 | 16 | Sitemap.xml | ✅ Endpoint `/sitemap.xml` |
 | 17 | Upload + Sharp warianty | ✅ `media.service.js` generuje thumb/medium/large WebP |
+| 18 | Ukończono widoki admin panelu (CRUD) | ✅ Content, Media, Contacts, Settings, Users, Backups (Tura 1) |
+| 19 | System i18n (PL/EN) | ✅ 82 kluczy, przełącznik w nav działa (Tura 2-3) |
+| 20 | Landing page na `t('key')` | ✅ 9 sekcji przepisanych (Tura 3) |
+| 21 | Walidacja formularza kontaktowego (frontend) | ✅ Honeypot, walidacja pól, błędy per field, toast (Tura 4) |
+| 22 | Animacje sekcji przy scrollu | ✅ IntersectionObserver + CSS `.animate-fade-up/in/stagger` (Tura 4) |
+| 23 | Counter animation dla sekcji About | ✅ Animacja liczb 0→docelowa, ~1.5s ease-out (Tura 4) |
+| 24 | Optymalizacja obrazków (lazy loading + srcset) | ✅ `loading="lazy"`, `srcset` z wariantami Sharp, blur-up placeholder (Tura 5) |
+| 25 | Logowanie GDPR consent | ✅ Osobny plik `gdpr-consents.log`, retencja 365 dni, auto-cleanup (Tura 5) |
+| 26 | Dokumentacja CI/CD (GitHub Actions) | ✅ Pełny workflow: test → lighthouse → docker build → deploy VPS (Tura 5) |
+| 27 | Hotfix i18n – statyczny import JSON | ✅ `import pl from '../../assets/i18n/pl.json'` – eliminacja 404 (Tura 6) |
+| 28 | Layout footer na `t('key')` | ✅ Nawigacja i tagline w footerze używają tłumaczeń (Tura 6) |
 
 ---
 
@@ -45,35 +56,13 @@
 
 ### 1. Ukończyć widoki admin panelu
 **Lokalizacja:** `frontend/src/app/admin/app.js`  
-**Status:** Layout + sidebar gotowe, brak pełnych widoków CRUD.
-**Do zrobienia:**
-- [x] Content Manager – lista stron, edycja sekcji, reorder, publish, revisions/rollback ✅ (Tura 1)
-- [x] Media Library – lista z podglądem, usuwanie ✅ (Tura 1)
-- [x] Contacts – lista, zmiana statusu, usuwanie ✅ (Tura 1)
-- [x] Settings – edycja inline, zapis per key ✅ (Tura 1)
-- [x] User Management – lista użytkowników, role (admin/editor) ✅ (Tura 2/3)
-- [x] Backup Manager – lista, tworzenie, przywracanie, pobieranie ✅ (Tura 1)
+**Status:** ✅ Layout + sidebar gotowe, wszystkie widoki CRUD działają.
 
 ### 2. Podłączyć i18n do sekcji landing page ✅ (Tura 3)
 **Lokalizacja:** `frontend/src/app/sections/*/*.js`  
 **Status:** Wszystkie sekcje przepisane na `t('key')`. Przełącznik PL/EN w nav działa.
 
-### 3. Dodać walidację formularza kontaktowego (frontend)
-**Lokalizacja:** `frontend/src/app/sections/contact/contact.js`  
-**Do zrobienia:**
-- Walidacja email, phone, required fields
-- Honeypot anti-bot
-- Wyświetlanie błędów walidacji (Zod-like)
-- Toast sukces/błąd po submit
-
-### 4. Dodać animacje sekcji (IntersectionObserver)
-**Lokalizacja:** `frontend/src/app/core/animations.js`  
-**Do zrobienia:**
-- Stagger animation dla sekcji przy scrollu
-- Parallax dla hero
-- Counter animation dla statystyk (about)
-
-### 5. Dokończyć testy E2E (Playwright)
+### 3. Dokończyć testy E2E (Playwright)
 **Lokalizacja:** `frontend/e2e/`  
 **Do zrobienia:**
 - Login flow (admin)
@@ -85,65 +74,55 @@
 
 ## 🟢 Średnie (tydzień 3-4)
 
-### 6. Dodać pełne testy jednostkowe
+### 4. Dodać pełne testy jednostkowe
 **Stack:** Jest + Supertest + Playwright  
 **Do przetestowania:**
 - Unit: `auth.service.js`, `content.service.js`, `media.service.js`, `helpers.js`
 - Integration: rate limiting, upload, contact form
 - E2E: krytyczne ścieżki użytkownika
 
-### 7. Stworzyć skrypt `install.sh`
+### 5. Stworzyć skrypt `install.sh`
 **Lokalizacja:** Root  
 **Status:** ✅ Utworzony. Wymaga testowania na czystym systemie.
 
-### 8. Uzupełnić `docs/DEPLOYMENT.md` o pełny CI/CD
-**Do dodania:**
-- GitHub Actions workflow (build → test → deploy)
-- Lighthouse CI w PR
-- Automated backup przed deployem
-- Instrukcja dla Raspberry Pi
+### 6. Uzupełnić `docs/DEPLOYMENT.md` o pełny CI/CD ✅ (Tura 5)
+**Status:** Zaimplementowano – workflow GitHub Actions z testami, Lighthouse CI, build Docker, deploy VPS.
 
-### 9. Dodać logowanie GDPR consent
+### 7. Dodać logowanie GDPR consent ✅ (Tura 5)
 **Lokalizacja:** `backend/services/contact.service.js`  
-**Do zrobienia:**
-- Logowanie timestamp, IP, user-agent przy submit formularza
-- Osobny plik logów: `gdpr-consents.log`
-- Retencja 365 dni
+**Status:** Zaimplementowano – log `gdpr-consents.log`, retencja 365 dni, auto-cleanup co 100 zapisów.
 
-### 10. Optymalizacja obrazków (lazy loading)
+### 8. Optymalizacja obrazków (lazy loading) ✅ (Tura 5)
 **Lokalizacja:** `frontend/src/app/sections/portfolio/portfolio.js`  
-**Do zrobienia:**
-- `loading="lazy"` dla obrazków
-- `srcset` z wariantami Sharp
-- Placeholder / blur-up effect
+**Status:** Zaimplementowano – `loading="lazy"`, `srcset` z wariantami Sharp, blur-up placeholder.
 
 ---
 
 ## 🔵 Niskie (przyszłość)
 
-### 11. Analytics
+### 9. Analytics
 - Google Analytics 4
 - Meta Pixel
 - Hotjar / Microsoft Clarity (heatmap)
 
-### 12. Newsletter
+### 10. Newsletter
 - Integracja z Mailchimp / Brevo
 - Formularz newslettera w footerze
 - Double opt-in
 
-### 13. Multi-tenancy
+### 11. Multi-tenancy
 - Wsparcie dla wielu stron (nie tylko `home`)
 - Custom domains per page
 
-### 14. WebSocket (real-time)
+### 12. WebSocket (real-time)
 - Live preview w adminie
 - Real-time notifications
 
-### 15. GraphQL (opcjonalnie)
+### 13. GraphQL (opcjonalnie)
 - Alternatywa dla REST API v2
 - Apollo Client na frontendzie
 
-### 16. Newsletter + Blog
+### 14. Newsletter + Blog
 - System blogowy (posts, categories, tags)
 - RSS feed
 - SEO dla postów

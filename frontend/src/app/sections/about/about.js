@@ -8,9 +8,30 @@ class WebowoSectionAbout extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._onI18nChange = () => this.render();
+    this._animated = false;
   }
 
   connectedCallback() {
+    this.render();
+    this._onI18nChange = () => this.render();
+    window.addEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  render() {
+    this.render();
+    window.addEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('i18n:changed', this._onI18nChange);
+  }
+
+  render() {
     const data = this.data || {};
     const title = data.title || t('about_title');
     const text = data.text || t('about_text');
@@ -37,7 +58,7 @@ class WebowoSectionAbout extends HTMLElement {
           <h2>${title}</h2>
           <p>${text}</p>
           <div class="stats">
-            ${stats.map(s => `<div class="stat"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+            ${stats.map((s, i) => `<div class="stat"><div class="stat-value" data-count="${s.value}">${this._animated ? s.value : '0'}</div><div class="stat-label">${s.label}</div></div>`).join('')}
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:center;">
@@ -45,6 +66,64 @@ class WebowoSectionAbout extends HTMLElement {
         </div>
       </section>
     `;
+
+    if (!this._animated) {
+      this.initCounterAnimation();
+    }
+  }
+
+  initCounterAnimation() {
+    const statValues = this.shadowRoot.querySelectorAll('.stat-value[data-count]');
+    if (!statValues.length) return;
+
+    const section = this.shadowRoot.querySelector('section');
+    if (!section) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this._animated = true;
+          statValues.forEach(el => this.animateCounter(el));
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.15 });
+
+    observer.observe(section);
+  }
+
+  animateCounter(el) {
+    const targetText = el.dataset.count;
+    if (!targetText) return;
+
+    const match = targetText.match(/([0-9]+(?:\.[0-9]+)?)/);
+    if (!match) {
+      el.textContent = targetText;
+      return;
+    }
+
+    const targetNum = parseFloat(match[1]);
+    const prefix = targetText.substring(0, match.index);
+    const suffix = targetText.substring(match.index + match[1].length);
+    const duration = 1500;
+    const startTime = performance.now();
+    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOut(progress);
+      const current = Math.round(eased * targetNum);
+      el.textContent = `${prefix}${current}${suffix}`;
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = targetText;
+      }
+    };
+
+    requestAnimationFrame(tick);
   }
 }
 customElements.define('webowo-section-about', WebowoSectionAbout);

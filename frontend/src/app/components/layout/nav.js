@@ -11,6 +11,11 @@ class WebowoNav extends HTMLElement {
   }
 
   connectedCallback() {
+    this.render();
+  }
+
+  render() {
+    const current = getLocale();
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border); }
@@ -32,7 +37,7 @@ class WebowoNav extends HTMLElement {
         }
       </style>
       <nav>
-        <a class="brand" href="/">Webowo</a>
+        <a class="brand" href="/">${t('footer_brand')}</a>
         <button class="mobile-toggle" aria-label="Menu">☰</button>
         <ul class="links">
           <li><a href="/#hero">${t('nav_home')}</a></li>
@@ -41,8 +46,8 @@ class WebowoNav extends HTMLElement {
           <li><a href="/#portfolio">${t('nav_portfolio')}</a></li>
           <li><a href="/#contact">${t('nav_contact')}</a></li>
           <li class="lang-switcher">
-            <button class="lang-btn" data-lang="pl">${t('nav_lang_pl')}</button>
-            <button class="lang-btn" data-lang="en">${t('nav_lang_en')}</button>
+            <button class="lang-btn ${current === 'pl' ? 'active-lang' : ''}" data-lang="pl">${t('nav_lang_pl')}</button>
+            <button class="lang-btn ${current === 'en' ? 'active-lang' : ''}" data-lang="en">${t('nav_lang_en')}</button>
           </li>
         </ul>
       </nav>
@@ -52,18 +57,8 @@ class WebowoNav extends HTMLElement {
     const links = this.shadowRoot.querySelector('.links');
     toggle.addEventListener('click', () => links.classList.toggle('open'));
 
-    // Language switcher
-    const currentLocale = getLocale();
     this.shadowRoot.querySelectorAll('.lang-btn').forEach(btn => {
-      if (btn.dataset.lang === currentLocale) {
-        btn.classList.add('active-lang');
-      }
-      btn.addEventListener('click', () => {
-        const locale = btn.dataset.lang;
-        setLocale(locale);
-        this.shadowRoot.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active-lang'));
-        btn.classList.add('active-lang');
-      });
+      btn.addEventListener('click', () => setLocale(btn.dataset.lang));
     });
   }
 }

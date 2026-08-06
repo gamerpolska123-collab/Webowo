@@ -6,7 +6,7 @@ import './styles/main.css';
 import { initI18n } from './app/core/i18n.js';
 import { initRouter } from './app/core/router.js';
 import { initState } from './app/core/state.js';
-import { initAnimations } from './app/core/animations.js';
+import { initAnimations, observeSections } from './app/core/animations.js';
 import { initRenderer } from './app/core/renderer.js';
 
 // Web Components
@@ -41,6 +41,13 @@ async function init() {
   initRouter();
   await initRenderer();
   initAnimations();
+
+  // Animacje sekcji przy scrollu (Tura 4)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeSections);
+  } else {
+    observeSections();
+  }
 
   const API_BASE = import.meta.env?.VITE_API_BASE_URL || '/api/v2';
   try {

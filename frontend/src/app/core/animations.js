@@ -33,4 +33,36 @@ function scrollTo(target) {
   if (lenis) lenis.scrollTo(target);
 }
 
-export { initAnimations, scrollTo };
+// ============================================
+// IntersectionObserver dla sekcji landing page
+// Dodaje klasę .animate-in gdy sekcja wejdzie w viewport
+// ============================================
+function observeSections() {
+  const sectionSelectors = [
+    'webowo-section-hero',
+    'webowo-section-about',
+    'webowo-section-services',
+    'webowo-section-portfolio',
+    'webowo-section-process',
+    'webowo-section-pricing',
+    'webowo-section-faq',
+    'webowo-section-contact',
+    'webowo-section-footer'
+  ];
+
+  const sections = document.querySelectorAll(sectionSelectors.join(', '));
+  if (!sections.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  sections.forEach(section => observer.observe(section));
+}
+
+export { initAnimations, scrollTo, observeSections };

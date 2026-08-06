@@ -80,5 +80,8 @@
   "contact_error": "❌ Sending error. Please try again.",
   "footer_brand": "Matys WebDev",
   "footer_tagline": "I build websites that work.",
-  "footer_copyright": "© 2026 Matys WebDev. All rights reserved."
+  "footer_copyright": "© 2026 Matys WebDev. All rights reserved.",
+  "contact_error_name": "Name must be at least 2 characters",
+  "contact_error_email": "Please enter a valid email",
+  "contact_error_message": "Message must be at least 10 characters"
 }
