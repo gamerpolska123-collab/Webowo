@@ -50,8 +50,8 @@
 
 ```bash
 # 1. Czysta instalacja
-git clone https://github.com/gamerpolska123-collab/WebDev.git
-cd WebDev
+git clone https://github.com/gamerpolska123-collab/Webowo.git
+cd Webowo
 
 # 2. Konfiguracja
 cp .env.example .env

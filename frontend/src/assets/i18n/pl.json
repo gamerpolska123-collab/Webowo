@@ -83,5 +83,9 @@
   "footer_copyright": "© 2026 Matys WebDev. Wszelkie prawa zastrzeżone.",
   "contact_error_name": "Imię musi mieć min. 2 znaki",
   "contact_error_email": "Podaj poprawny adres email",
-  "contact_error_message": "Wiadomość musi mieć min. 10 znaków"
+  "contact_error_message": "Wiadomość musi mieć min. 10 znaków",
+  "contact_name": "Imię i nazwisko",
+  "contact_email": "Email",
+  "contact_subject": "Temat",
+  "contact_message": "Twoja wiadomość"
 }

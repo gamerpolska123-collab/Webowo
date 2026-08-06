@@ -1,13 +1,8 @@
-// ============================================
-// Service Worker – Webowo PWA
-// ============================================
-
 const CACHE_NAME = 'webowo-v2-cache-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/src/main.js',
-  '/src/styles/main.css',
+  '/admin.html',
   '/manifest.json',
   '/favicon.svg'
 ];

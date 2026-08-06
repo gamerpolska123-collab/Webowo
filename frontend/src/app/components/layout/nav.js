@@ -1,8 +1,4 @@
-// ============================================
-// Layout Component: Navigation
-// ============================================
-
-import { t, setLocale, getLocale } from '../../core/i18n.js';
+import { t, getLocale, setLocale } from '../../core/i18n.js';
 
 class WebowoNav extends HTMLElement {
   constructor() {
@@ -12,54 +8,43 @@ class WebowoNav extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    window.addEventListener('i18n:changed', () => this.render());
   }
 
   render() {
-    const current = getLocale();
+    const isPl = getLocale() === 'pl';
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-border); }
-        nav { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; }
-        .brand { font-weight: 800; font-size: 1.25rem; color: var(--color-primary); text-decoration: none; }
-        .links { display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0; align-items: center; }
-        .links a { text-decoration: none; color: var(--color-text); font-weight: 500; transition: color 0.2s; }
-        .links a:hover { color: var(--color-primary); }
-        .mobile-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-        .lang-switcher { display: flex; gap: 0.5rem; margin-left: 1rem; }
-        .lang-switcher button { background: none; border: 1px solid var(--color-border); border-radius: 0.375rem; padding: 0.35rem 0.75rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; color: var(--color-text); transition: all 0.2s; }
-        .lang-switcher button:hover { border-color: var(--color-primary); color: var(--color-primary); }
-        .lang-switcher button.active-lang { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-        @media (max-width: 768px) {
-          .links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--color-surface); flex-direction: column; padding: 1rem 2rem; border-bottom: 1px solid var(--color-border); align-items: flex-start; }
-          .links.open { display: flex; }
-          .mobile-toggle { display: block; }
-          .lang-switcher { margin-left: 0; margin-top: 0.5rem; }
-        }
+        :host { display: block; position: sticky; top: 0; z-index: 100; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+        .brand { font-size: 1.25rem; font-weight: 800; color: var(--color-primary); }
+        .links { display: flex; gap: 2rem; align-items: center; }
+        a { color: var(--color-text); text-decoration: none; font-weight: 500; font-size: 0.9375rem; transition: color 0.2s; }
+        a:hover { color: var(--color-primary); }
+        .lang { display: flex; gap: 0.5rem; }
+        .lang button { background: none; border: 1px solid var(--color-border); border-radius: 0.25rem; padding: 0.25rem 0.5rem; cursor: pointer; font-size: 0.875rem; color: var(--color-muted); }
+        .lang button.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+        @media (max-width: 768px) { .links { display: none; } }
       </style>
       <nav>
-        <a class="brand" href="/">${t('footer_brand')}</a>
-        <button class="mobile-toggle" aria-label="Menu">☰</button>
-        <ul class="links">
-          <li><a href="/#hero">${t('nav_home')}</a></li>
-          <li><a href="/#about">${t('nav_about')}</a></li>
-          <li><a href="/#services">${t('nav_services')}</a></li>
-          <li><a href="/#portfolio">${t('nav_portfolio')}</a></li>
-          <li><a href="/#contact">${t('nav_contact')}</a></li>
-          <li class="lang-switcher">
-            <button class="lang-btn ${current === 'pl' ? 'active-lang' : ''}" data-lang="pl">${t('nav_lang_pl')}</button>
-            <button class="lang-btn ${current === 'en' ? 'active-lang' : ''}" data-lang="en">${t('nav_lang_en')}</button>
-          </li>
-        </ul>
+        <div class="brand">Matys WebDev</div>
+        <div class="links">
+          <a href="#hero">${t('nav_home') || 'Strona główna'}</a>
+          <a href="#about">${t('nav_about') || 'O mnie'}</a>
+          <a href="#services">${t('nav_services') || 'Usługi'}</a>
+          <a href="#portfolio">${t('nav_portfolio') || 'Portfolio'}</a>
+          <a href="#contact">${t('nav_contact') || 'Kontakt'}</a>
+          <div class="lang">
+            <button class="${isPl ? 'active' : ''}" data-lang="pl">PL</button>
+            <button class="${!isPl ? 'active' : ''}" data-lang="en">EN</button>
+          </div>
+        </div>
       </nav>
     `;
-
-    const toggle = this.shadowRoot.querySelector('.mobile-toggle');
-    const links = this.shadowRoot.querySelector('.links');
-    toggle.addEventListener('click', () => links.classList.toggle('open'));
-
-    this.shadowRoot.querySelectorAll('.lang-btn').forEach(btn => {
+    this.shadowRoot.querySelectorAll('.lang button').forEach(btn => {
       btn.addEventListener('click', () => setLocale(btn.dataset.lang));
     });
   }
 }
+
 customElements.define('webowo-nav', WebowoNav);

@@ -1,7 +1,3 @@
-// ============================================
-// Section: About
-// ============================================
-
 import { t } from '../../core/i18n.js';
 
 class WebowoSectionAbout extends HTMLElement {
@@ -13,16 +9,6 @@ class WebowoSectionAbout extends HTMLElement {
   }
 
   connectedCallback() {
-    this.render();
-    this._onI18nChange = () => this.render();
-    window.addEventListener('i18n:changed', this._onI18nChange);
-  }
-
-  disconnectedCallback() {
-    window.removeEventListener('i18n:changed', this._onI18nChange);
-  }
-
-  render() {
     this.render();
     window.addEventListener('i18n:changed', this._onI18nChange);
   }
@@ -45,7 +31,7 @@ class WebowoSectionAbout extends HTMLElement {
       <style>
         :host { display: block; padding: 6rem 2rem; }
         .about { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-        h2 { font-size: 2.5rem; font-weight: 800; margin: 0 0 1rem; }
+        h2 { font-size: 2.5rem; font-weight: 800; margin: 0 0 1rem; color: var(--color-text); }
         p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.7; }
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2rem; }
         .stat { text-align: center; padding: 1.5rem; background: var(--color-surface); border-radius: 1rem; border: 1px solid var(--color-border); }
@@ -58,72 +44,12 @@ class WebowoSectionAbout extends HTMLElement {
           <h2>${title}</h2>
           <p>${text}</p>
           <div class="stats">
-            ${stats.map((s, i) => `<div class="stat"><div class="stat-value" data-count="${s.value}">${this._animated ? s.value : '0'}</div><div class="stat-label">${s.label}</div></div>`).join('')}
+            ${stats.map(s => `<div class="stat"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('')}
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;">
-          <div style="width:300px;height:300px;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));border-radius:1.5rem;opacity:0.1;"></div>
         </div>
       </section>
     `;
-
-    if (!this._animated) {
-      this.initCounterAnimation();
-    }
-  }
-
-  initCounterAnimation() {
-    const statValues = this.shadowRoot.querySelectorAll('.stat-value[data-count]');
-    if (!statValues.length) return;
-
-    const section = this.shadowRoot.querySelector('section');
-    if (!section) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          this._animated = true;
-          statValues.forEach(el => this.animateCounter(el));
-          observer.disconnect();
-        }
-      });
-    }, { threshold: 0.15 });
-
-    observer.observe(section);
-  }
-
-  animateCounter(el) {
-    const targetText = el.dataset.count;
-    if (!targetText) return;
-
-    const match = targetText.match(/([0-9]+(?:\.[0-9]+)?)/);
-    if (!match) {
-      el.textContent = targetText;
-      return;
-    }
-
-    const targetNum = parseFloat(match[1]);
-    const prefix = targetText.substring(0, match.index);
-    const suffix = targetText.substring(match.index + match[1].length);
-    const duration = 1500;
-    const startTime = performance.now();
-    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = easeOut(progress);
-      const current = Math.round(eased * targetNum);
-      el.textContent = `${prefix}${current}${suffix}`;
-
-      if (progress < 1) {
-        requestAnimationFrame(tick);
-      } else {
-        el.textContent = targetText;
-      }
-    };
-
-    requestAnimationFrame(tick);
   }
 }
+
 customElements.define('webowo-section-about', WebowoSectionAbout);

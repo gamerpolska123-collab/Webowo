@@ -1,62 +1,12 @@
-/* ============================================
-   Design Tokens – Colors
-   ============================================ */
-
 :root {
-  /* Primary */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #005ce6;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-
-  /* Accent */
-  --color-accent-50: #f0fdfa;
-  --color-accent-100: #ccfbf1;
-  --color-accent-200: #99f6e4;
-  --color-accent-300: #5eead4;
-  --color-accent-400: #2dd4bf;
-  --color-accent-500: #00d4aa;
-  --color-accent-600: #0d9488;
-
-  /* Neutral */
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
-  --color-gray-900: #0f172a;
-
-  /* Semantic */
-  --color-success-50: #f0fdf4;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-error-50: #fef2f2;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-  --color-warning-50: #fffbeb;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-info-50: #eff6ff;
-  --color-info-500: #3b82f6;
-
-  /* Aliases */
-  --color-primary: var(--color-primary-600);
-  --color-accent: var(--color-accent-500);
-  --color-text: var(--color-gray-900);
-  --color-muted: var(--color-gray-500);
-  --color-bg: var(--color-gray-50);
-  --color-surface: #ffffff;
-  --color-border: var(--color-gray-200);
-  --color-error: var(--color-error-500);
-  --color-success: var(--color-success-500);
+  --color-primary: #005ce6;
+  --color-accent: #00d4aa;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }

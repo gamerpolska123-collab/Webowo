@@ -1,9 +1,3 @@
-// ============================================
-// Layout Component: Footer
-// ============================================
-
-import { t } from '../../core/i18n.js';
-
 class WebowoLayoutFooter extends HTMLElement {
   constructor() {
     super();
@@ -11,37 +5,18 @@ class WebowoLayoutFooter extends HTMLElement {
   }
 
   connectedCallback() {
+    this.render();
+  }
+
+  render() {
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; background: var(--color-surface); border-top: 1px solid var(--color-border); margin-top: 4rem; }
-        footer { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
-        .col h4 { margin: 0 0 1rem; font-size: 1rem; }
-        .col a { display: block; color: var(--color-muted); text-decoration: none; margin-bottom: 0.5rem; transition: color 0.2s; }
-        .col a:hover { color: var(--color-primary); }
-        .bottom { grid-column: 1 / -1; text-align: center; padding-top: 2rem; border-top: 1px solid var(--color-border); color: var(--color-muted); font-size: 0.875rem; }
+        :host { display: block; }
+        ::slotted(*) { max-width: 1200px; margin: 0 auto; }
       </style>
-      <footer>
-        <div class="col">
-          <h4>${t('footer_brand')}</h4>
-          <p style="color:var(--color-muted);margin:0;">${t('footer_tagline')}</p>
-        </div>
-        <div class="col">
-          <h4>${t('nav_home')}</h4>
-          <a href="/#hero">${t('nav_home')}</a>
-          <a href="/#about">${t('nav_about')}</a>
-          <a href="/#services">${t('nav_services')}</a>
-          <a href="/#contact">${t('nav_contact')}</a>
-        </div>
-        <div class="col">
-          <h4>Social</h4>
-          <a href="https://github.com/gamerpolska123-collab" target="_blank">GitHub</a>
-          <a href="https://linkedin.com" target="_blank">LinkedIn</a>
-        </div>
-        <div class="bottom">
-          <slot></slot>
-        </div>
-      </footer>
+      <slot></slot>
     `;
   }
 }
+
 customElements.define('webowo-layout-footer', WebowoLayoutFooter);

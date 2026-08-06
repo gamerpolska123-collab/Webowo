@@ -1,7 +1,3 @@
-// ============================================
-// Webowo v2.0 – Frontend Entry Point
-// ============================================
-
 import './styles/main.css';
 import { initI18n } from './app/core/i18n.js';
 import { initRouter } from './app/core/router.js';
@@ -36,13 +32,18 @@ import './app/sections/footer/footer.js';
 async function init() {
   console.log('[Webowo v2.0] Starting initialization...');
 
-  await initI18n();
+  initI18n();
   initState();
   initRouter();
-  await initRenderer();
+
+  try {
+    await initRenderer();
+  } catch (err) {
+    console.error('[Renderer] Failed:', err);
+  }
+
   initAnimations();
 
-  // Animacje sekcji przy scrollu (Tura 4)
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', observeSections);
   } else {

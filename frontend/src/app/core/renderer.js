@@ -1,13 +1,8 @@
-// ============================================
-// Section Renderer – API v2 + Fallback
-// ============================================
-
 import { getState, setState } from './state.js';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v2';
-const LEGACY_API = import.meta.env.VITE_LEGACY_API_URL || '/api';
+const API_BASE = import.meta.env?.VITE_API_BASE_URL || '/api/v2';
+const LEGACY_API = import.meta.env?.VITE_LEGACY_API_URL || '/api';
 
-// Default sections data (fallback when API is unavailable)
 const DEFAULT_SECTIONS = [
   { type: 'hero', order_index: 1, data: '{"title":"Tworzę nowoczesne strony, które","subtitle":"Profesjonalne strony internetowe, sklepy online i aplikacje webowe.","badge":"Dostępny do nowych projektów","ctaPrimary":{"label":"Bezpłatna wycena","href":"#contact"},"ctaSecondary":{"label":"Zobacz realizacje","href":"#portfolio"}}', is_active: 1 },
   { type: 'about', order_index: 2, data: '{"title":"O mnie","text":"Jestem Patryk Matys — full-stack developer z pasją do tworzenia nowoczesnych stron internetowych.","stats":[{"label":"Zrealizowanych projektów","value":"50+"},{"label":"Zadowolonych klientów","value":"100%"},{"label":"Czas odpowiedzi","value":"24h"}]}', is_active: 1 },
@@ -19,9 +14,22 @@ const DEFAULT_SECTIONS = [
   { type: 'contact', order_index: 8, data: '{"title":"Kontakt","email":"kontakt@matys.net.pl","phone":"+48 123 456 789","social":{"github":"https://github.com/gamerpolska123-collab","linkedin":"https://linkedin.com/in/patryk-matys"}}', is_active: 1 }
 ];
 
+async function fetchWithTimeout(url, ms = 1500) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    return res;
+  } catch (e) {
+    clearTimeout(t);
+    throw e;
+  }
+}
+
 async function fetchContent(slug = 'home') {
   try {
-    const res = await fetch(`${API_BASE}/content/pages/${slug}`);
+    const res = await fetchWithTimeout(`${API_BASE}/content/pages/${slug}`);
     if (res.ok) {
       const { data } = await res.json();
       console.log('[Renderer] Loaded from API v2');
@@ -32,7 +40,7 @@ async function fetchContent(slug = 'home') {
   }
 
   try {
-    const res = await fetch(`${LEGACY_API}/content`);
+    const res = await fetchWithTimeout(`${LEGACY_API}/content`);
     if (res.ok) {
       const data = await res.json();
       console.log('[Renderer] Loaded from legacy API');
@@ -46,11 +54,9 @@ async function fetchContent(slug = 'home') {
   return null;
 }
 
-function renderSection(section) {
-  const container = document.getElementById('sections-container');
-  if (!container) return;
-
-  const el = document.createElement(`webowo-section-${section.type}`);
+function renderSection(container, section) {
+  const tag = `webowo-section-${section.type}`;
+  const el = document.createElement(tag);
   try {
     el.data = JSON.parse(section.data || '{}');
   } catch {
@@ -59,32 +65,19 @@ function renderSection(section) {
   container.appendChild(el);
 }
 
-function renderSections(sections) {
-  const container = document.getElementById('sections-container');
-  if (!container) return;
-  container.innerHTML = '';
-  for (const section of sections) {
-    if (section.is_active) renderSection(section);
-  }
-}
-
 async function initRenderer() {
   const container = document.getElementById('sections-container');
   if (!container) {
-    console.error('[Renderer] #sections-container not found');
+    console.warn('[Renderer] sections-container not found');
     return;
   }
-
   const page = await fetchContent('home');
-
-  if (page && page.sections && page.sections.length > 0) {
-    renderSections(page.sections);
-  } else {
-    console.log('[Renderer] Rendering default sections');
-    renderSections(DEFAULT_SECTIONS);
-  }
-
-  setState('page', page);
+  const sections = page?.sections?.length ? page.sections : DEFAULT_SECTIONS;
+  sections
+    .filter(s => s.is_active)
+    .sort((a, b) => a.order_index - b.order_index)
+    .forEach(s => renderSection(container, s));
+  console.log(`[Renderer] Rendered ${sections.length} sections (fallback: ${!page?.sections?.length})`);
 }
 
-export { initRenderer, fetchContent, renderSection };
+export { initRenderer };

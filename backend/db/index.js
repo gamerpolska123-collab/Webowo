@@ -86,13 +86,16 @@ function reset() {
   seed();
 }
 
-const cmd = process.argv[2];
-if (cmd === 'migrate') { migrate(); closeDb(); }
-else if (cmd === 'seed') { seed(); closeDb(); }
-else if (cmd === 'reset') { reset(); closeDb(); }
-else {
-  console.log('Usage: node db/index.js [migrate|seed|reset]');
-  process.exit(1);
+// CLI-only execution guard
+if (require.main === module) {
+  const cmd = process.argv[2];
+  if (cmd === 'migrate') { migrate(); closeDb(); }
+  else if (cmd === 'seed') { seed(); closeDb(); }
+  else if (cmd === 'reset') { reset(); closeDb(); }
+  else {
+    console.log('Usage: node db/index.js [migrate|seed|reset]');
+    process.exit(1);
+  }
 }
 
 module.exports = { migrate, seed, reset };

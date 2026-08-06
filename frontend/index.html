@@ -8,13 +8,20 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <title>Matys WebDev | Tworzenie Stron Internetowych</title>
-  <script type="module" src="/src/main.js"></script>
 </head>
 <body>
+  <noscript>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 4rem; background: #f8fafc; color: #0f172a; }
+      h1 { font-size: 2rem; margin-bottom: 1rem; }
+      p { color: #64748b; font-size: 1.125rem; }
+    </style>
+    <h1>⚠️ JavaScript jest wyłączony</h1>
+    <p>Ta strona wymaga JavaScript do działania. Włącz go w ustawieniach przeglądarki, aby zobaczyć pełną zawartość.</p>
+  </noscript>
   <webowo-nav></webowo-nav>
-  <main id="sections-container">
-    <!-- Sections rendered dynamically by renderer.js -->
-  </main>
+  <main id="sections-container"></main>
   <webowo-layout-footer></webowo-layout-footer>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
