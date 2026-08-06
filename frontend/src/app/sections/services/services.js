@@ -2,6 +2,8 @@
 // Section: Services
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionServices extends HTMLElement {
   constructor() {
     super();
@@ -10,12 +12,12 @@ class WebowoSectionServices extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Usługi';
+    const title = data.title || t('services_title');
     const items = data.items || [
-      { title: 'Strony WWW', desc: 'Nowoczesne strony wizytówki i landing page' },
-      { title: 'Sklepy Online', desc: 'E-commerce z płatnościami online' },
-      { title: 'Aplikacje Webowe', desc: 'Zaawansowane aplikacje SPA i PWA' },
-      { title: 'Optymalizacja', desc: 'SEO, performance, dostępność' }
+      { title: t('services_item1_title'), desc: t('services_item1_desc') },
+      { title: t('services_item2_title'), desc: t('services_item2_desc') },
+      { title: t('services_item3_title'), desc: t('services_item3_desc') },
+      { title: t('services_item4_title'), desc: t('services_item4_desc') }
     ];
 
     this.shadowRoot.innerHTML = `

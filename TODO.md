@@ -2,7 +2,7 @@
 
 > **Wersja:** 2.0.0  
 > **Ostatnia aktualizacja:** 2026-08-06  
-> **Status:** Stabilne – Etap 5 zakończony, Etap 6-9 w toku
+> **Status:** Stabilne – Etap 5 zakończony, Tura 1 (Admin Panel CRUD) zakończona
 
 ---
 
@@ -47,12 +47,12 @@
 **Lokalizacja:** `frontend/src/app/admin/app.js`  
 **Status:** Layout + sidebar gotowe, brak pełnych widoków CRUD.
 **Do zrobienia:**
-- [ ] Content Manager – lista stron, edycja sekcji (drag & drop order)
-- [ ] Media Library – grid zdjęć, podgląd wariantów, usuwanie
-- [ ] Contacts – lista wiadomości, zmiana statusu, filtrowanie
-- [ ] Settings – formularz edycji ustawień publicznych
+- [x] Content Manager – lista stron, edycja sekcji, reorder, publish, revisions/rollback ✅ (Tura 1)
+- [x] Media Library – lista z podglądem, usuwanie ✅ (Tura 1)
+- [x] Contacts – lista, zmiana statusu, usuwanie ✅ (Tura 1)
+- [x] Settings – edycja inline, zapis per key ✅ (Tura 1)
 - [ ] User Management – lista użytkowników, role (admin/editor)
-- [ ] Backup Manager – lista backupów, przywracanie, pobieranie
+- [x] Backup Manager – lista, tworzenie, przywracanie, pobieranie ✅ (Tura 1)
 
 ### 2. Podłączyć i18n do sekcji landing page
 **Lokalizacja:** `frontend/src/app/sections/*/*.js`  

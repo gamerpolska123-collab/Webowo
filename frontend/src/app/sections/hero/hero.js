@@ -2,6 +2,8 @@
 // Section: Hero
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionHero extends HTMLElement {
   constructor() {
     super();
@@ -10,11 +12,11 @@ class WebowoSectionHero extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Tworzę nowoczesne strony, które';
-    const subtitle = data.subtitle || 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.';
-    const badge = data.badge || 'Dostępny do nowych projektów';
-    const ctaPrimary = data.ctaPrimary || { label: 'Bezpłatna wycena', href: '#contact' };
-    const ctaSecondary = data.ctaSecondary || { label: 'Zobacz realizacje', href: '#portfolio' };
+    const title = data.title || t('hero_title');
+    const subtitle = data.subtitle || t('hero_subtitle');
+    const badge = data.badge || t('hero_badge');
+    const ctaPrimary = data.ctaPrimary || { label: t('hero_cta_primary'), href: '#contact' };
+    const ctaSecondary = data.ctaSecondary || { label: t('hero_cta_secondary'), href: '#portfolio' };
 
     this.shadowRoot.innerHTML = `
       <style>

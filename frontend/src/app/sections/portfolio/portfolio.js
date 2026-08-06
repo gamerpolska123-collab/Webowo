@@ -2,6 +2,8 @@
 // Section: Portfolio
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionPortfolio extends HTMLElement {
   constructor() {
     super();
@@ -10,7 +12,7 @@ class WebowoSectionPortfolio extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'Portfolio';
+    const title = data.title || t('portfolio_title');
     const items = data.items || [];
 
     this.shadowRoot.innerHTML = `
@@ -41,7 +43,7 @@ class WebowoSectionPortfolio extends HTMLElement {
                 </div>
               </div>
             </div>
-          `).join('') : '<div class="empty">Projekty wkrótce...</div>'}
+          `).join('') : '<div class="empty">' + t('portfolio_empty') + '</div>'}
         </div>
       </section>
     `;

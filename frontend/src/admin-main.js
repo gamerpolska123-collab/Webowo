@@ -1,9 +1,7 @@
-// ============================================
-// Webowo Admin Entry Point
-// ============================================
-
-import './styles/main.css';
+// Admin Panel Entry Point
 import './app/admin/app.js';
+import { initAdminRouter } from './app/admin/router.js';
 
-// Admin panel auto-mounts via <webowo-admin> tag in admin.html
-console.log('[Webowo Admin] Entry loaded');
+document.addEventListener('DOMContentLoaded', () => {
+  initAdminRouter();
+});

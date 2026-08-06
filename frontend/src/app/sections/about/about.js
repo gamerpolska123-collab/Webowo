@@ -2,6 +2,8 @@
 // Section: About
 // ============================================
 
+import { t } from '../../core/i18n.js';
+
 class WebowoSectionAbout extends HTMLElement {
   constructor() {
     super();
@@ -10,12 +12,12 @@ class WebowoSectionAbout extends HTMLElement {
 
   connectedCallback() {
     const data = this.data || {};
-    const title = data.title || 'O mnie';
-    const text = data.text || 'Jestem Patryk Matys — full-stack developer z pasją do tworzenia nowoczesnych stron internetowych.';
+    const title = data.title || t('about_title');
+    const text = data.text || t('about_text');
     const stats = data.stats || [
-      { label: 'Zrealizowanych projektów', value: '50+' },
-      { label: 'Zadowolonych klientów', value: '100%' },
-      { label: 'Czas odpowiedzi', value: '24h' }
+      { label: t('about_stat1_label'), value: t('about_stat1_value') },
+      { label: t('about_stat2_label'), value: t('about_stat2_value') },
+      { label: t('about_stat3_label'), value: t('about_stat3_value') }
     ];
 
     this.shadowRoot.innerHTML = `
