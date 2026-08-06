@@ -1,0 +1,28 @@
+/* Portfolio Section */
+.portfolio {
+  padding: 6rem 2rem;
+  background: var(--color-surface, #0f172a);
+}
+
+.portfolio__title {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--color-text-primary, #f8fafc);
+  margin-bottom: 3rem;
+}
+
+.portfolio__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.portfolio__empty {
+  text-align: center;
+  color: var(--color-text-secondary, #94a3b8);
+  padding: 3rem;
+  grid-column: 1 / -1;
+}

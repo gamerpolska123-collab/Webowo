@@ -1,0 +1,4 @@
+-- ============================================
+-- Webowo v2.0 – Full Schema (documentation)
+-- ============================================
+-- See migrations/001_init.sql for executable version

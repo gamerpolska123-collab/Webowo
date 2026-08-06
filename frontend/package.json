@@ -1,0 +1,29 @@
+{
+  "name": "webowo-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0",
+    "playwright": "^1.49.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.7.0",
+    "postcss": "^8.4.0",
+    "postcss-nesting": "^13.0.0",
+    "postcss-custom-media": "^11.0.0"
+  },
+  "dependencies": {
+    "lenis": "^1.1.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Matys WebDev",
+  "short_name": "Webowo",
+  "description": "Profesjonalne strony internetowe i aplikacje webowe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005ce6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

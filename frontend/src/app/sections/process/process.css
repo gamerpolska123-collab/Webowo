@@ -1,0 +1,61 @@
+/* Process Section */
+.process {
+  padding: 6rem 2rem;
+  background: var(--color-bg, #0b1120);
+}
+
+.process__title {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--color-text-primary, #f8fafc);
+  margin-bottom: 3rem;
+}
+
+.process__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin-inline: auto;
+  counter-reset: step;
+}
+
+.process-step {
+  position: relative;
+  padding: 2rem;
+  background: var(--color-surface, #1e293b);
+  border-radius: 1rem;
+  border: 1px solid var(--color-border, #334155);
+}
+
+.process-step::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  top: -1rem;
+  left: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-primary, #005ce6);
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.process-step__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f8fafc);
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.process-step__desc {
+  color: var(--color-text-secondary, #94a3b8);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
