@@ -1,41 +1,63 @@
+version: '3.8'
+
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: webowo-backend
     restart: unless-stopped
     ports:
-      - "6666:3000"
-    env_file:
-      - .env
+      - "${BACKEND_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/data/db/webowo.sqlite
+      - UPLOAD_DIR=/app/data/uploads
+      - BACKUP_DIR=/app/data/backups
+      - LOG_DIR=/app/data/logs
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@webowo.pl}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:7777}
+      - SITE_URL=${SITE_URL:-https://matys.net.pl}
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_FROM=${EMAIL_FROM:-kontakt@webowo.pl}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - webowo-data:/app/data
     networks:
-      - webowo-net
+      - webowo-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 30s
-      timeout: 3s
+      timeout: 10s
       retries: 3
+      start_period: 10s
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: webowo-frontend
     restart: unless-stopped
     ports:
-      - "7777:80"
+      - "${FRONTEND_PORT:-7777}:80"
     depends_on:
       - backend
     networks:
-      - webowo-net
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
+      - webowo-network
 
 volumes:
   webowo-data:
+    driver: local
 
 networks:
-  webowo-net:
+  webowo-network:
     driver: bridge

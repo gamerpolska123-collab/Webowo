@@ -1,49 +1,80 @@
+// ============================================
+// Webowo v3.0 – Contact Routes
+// ============================================
+
 const express = require('express');
 const router = express.Router();
-const { z } = require('zod');
-const { validate } = require('../../middleware/validate');
+const { body, validationResult } = require('express-validator');
+const contactService = require('../../services/contact.service');
 const { contactLimiter } = require('../../middleware/rate-limit');
-const { authenticateToken } = require('../../middleware/auth');
-const ContactService = require('../../services/contact.service');
+const { authenticate, requireRole } = require('../../middleware/auth');
 
-const contactSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  subject: z.string().optional(),
-  message: z.string().min(1)
+const handleValidation = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+  next();
+};
+
+// POST /api/v2/contact
+router.post('/', contactLimiter, [
+  body('name').trim().notEmpty().withMessage('Imię jest wymagane').isLength({ max: 100 }),
+  body('email').isEmail().normalizeEmail().withMessage('Podaj prawidłowy e-mail'),
+  body('subject').trim().notEmpty().withMessage('Temat jest wymagany'),
+  body('message').trim().notEmpty().withMessage('Wiadomość jest wymagana').isLength({ max: 5000 }),
+  body('budget').optional().trim()
+], handleValidation, async (req, res, next) => {
+  try {
+    const result = await contactService.create(req.body);
+    res.status(201).json({ success: true, data: result, message: 'Wiadomość wysłana pomyślnie' });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/', contactLimiter, validate(contactSchema), async (req, res, next) => {
+// GET /api/v2/contact (admin only)
+router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
-    const contact = ContactService.create({
-      ...req.body,
-      ip: req.ip,
-      userAgent: req.headers['user-agent']
-    });
-    res.status(201).json({ success: true, data: contact, message: 'Wiadomość wysłana!' });
-  } catch (err) { next(err); }
+    const { page = 1, limit = 20, status } = req.query;
+    const result = await contactService.getAll({ page: parseInt(page), limit: parseInt(limit), status });
+    res.json({ success: true, data: result.items, meta: { total: result.total, page: result.page, pages: result.pages } });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/', authenticateToken, async (req, res, next) => {
+// GET /api/v2/contact/:id
+router.get('/:id', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
-    const contacts = ContactService.getAll();
-    res.json({ success: true, data: contacts });
-  } catch (err) { next(err); }
+    const item = await contactService.getById(req.params.id);
+    if (!item) return res.status(404).json({ success: false, error: 'Nie znaleziono' });
+    res.json({ success: true, data: item });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.patch('/:id/status', authenticateToken, async (req, res, next) => {
+// PATCH /api/v2/contact/:id/status
+router.patch('/:id/status', authenticate, requireRole('admin', 'editor'), [
+  body('status').isIn(['new', 'read', 'replied', 'archived'])
+], handleValidation, async (req, res, next) => {
   try {
-    const contact = ContactService.updateStatus(parseInt(req.params.id), req.body.status);
-    res.json({ success: true, data: contact });
-  } catch (err) { next(err); }
+    await contactService.updateStatus(req.params.id, req.body.status);
+    res.json({ success: true, message: 'Status zaktualizowany' });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.delete('/:id', authenticateToken, async (req, res, next) => {
+// DELETE /api/v2/contact/:id
+router.delete('/:id', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    ContactService.delete(parseInt(req.params.id));
+    await contactService.delete(req.params.id);
     res.json({ success: true, message: 'Wiadomość usunięta' });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

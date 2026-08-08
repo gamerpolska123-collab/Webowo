@@ -1,77 +1,92 @@
-// @ts-check
 // ============================================
-// Media Service
+// Webowo v3.0 – Media Service
 // ============================================
 
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-const { v4: uuidv4 } = require('uuid');
 const config = require('../config/config');
-const MediaModel = require('../models/media.model');
+const mediaModel = require('../models/media.model');
+const { logger } = require('../utils/logger');
 
-const MediaService = {
-  async processImage(file) {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const basename = uuidv4();
-    const filename = `${basename}${ext}`;
-    const filepath = path.join(config.uploads.dir, filename);
+class MediaService {
+  async processUpload(file) {
+    const { filename, originalname, mimetype, size, path: filePath } = file;
+    const ext = path.extname(filename);
+    const baseName = path.basename(filename, ext);
 
-    // Save original
-    fs.renameSync(file.path, filepath);
+    let width, height;
+    try {
+      const metadata = await sharp(filePath).metadata();
+      width = metadata.width;
+      height = metadata.height;
+    } catch {
+      width = null;
+      height = null;
+    }
 
     // Generate variants
     const variants = {};
-    const metadata = await sharp(filepath).metadata();
-
-    for (const [name, opts] of Object.entries(config.uploads.variants)) {
-      const variantFilename = `${basename}-${name}.webp`;
-      const variantPath = path.join(config.uploads.dir, variantFilename);
-      await sharp(filepath)
-        .resize(opts.width, opts.height, { fit: opts.fit })
-        .webp({ quality: 85 })
-        .toFile(variantPath);
-      variants[name] = `${config.uploads.publicUrl}/${variantFilename}`;
-    }
-
-    const media = MediaModel.create({
-      filename,
-      originalName: file.originalname,
-      mimeType: file.mimetype,
-      size: file.size,
-      width: metadata.width,
-      height: metadata.height,
-      variants: JSON.stringify(variants),
-      altText: '',
-      url: `${config.uploads.publicUrl}/${filename}`
-    });
-
-    return { ...media, variants };
-  },
-
-  getAll() {
-    const items = MediaModel.findAll();
-    return items.map(m => ({ ...m, variants: m.variants ? JSON.parse(m.variants) : {} }));
-  },
-
-  delete(id) {
-    const media = MediaModel.findById(id);
-    if (!media) throw new Error('Media not found');
-
-    // Delete files
-    const filepath = path.join(config.uploads.dir, media.filename);
-    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
-
-    if (media.variants) {
-      const variants = JSON.parse(media.variants);
-      for (const url of Object.values(variants)) {
-        const variantPath = path.join(config.uploads.dir, path.basename(url));
-        if (fs.existsSync(variantPath)) fs.unlinkSync(variantPath);
+    for (const [variantName, variantConfig] of Object.entries(config.uploads.variants)) {
+      try {
+        const variantPath = path.join(config.uploads.dir, `${baseName}-${variantName}${ext}`);
+        await sharp(filePath)
+          .resize(variantConfig.width, variantConfig.height, { fit: variantConfig.fit, withoutEnlargement: true })
+          .toFile(variantPath);
+        variants[variantName] = `${config.uploads.publicUrl}/${path.basename(variantPath)}`;
+      } catch (err) {
+        logger.warn(`Failed to create variant ${variantName}: ${err.message}`);
       }
     }
 
-    return MediaModel.delete(id);
-  }
-};
+    const url = `${config.uploads.publicUrl}/${filename}`;
 
-module.exports = MediaService;
+    const result = mediaModel.create({
+      filename,
+      original_name: originalname,
+      mime_type: mimetype,
+      size,
+      width,
+      height,
+      url
+    });
+
+    logger.info(`Media uploaded: ${filename} (${size} bytes)`);
+    return { ...result, variants };
+  }
+
+  async getAll(options = {}) {
+    const items = mediaModel.findAll(options);
+    const total = mediaModel.count();
+    return { items, total };
+  }
+
+  async delete(id) {
+    const media = mediaModel.findById(id);
+    if (!media) {
+      throw Object.assign(new Error('Plik nie istnieje'), { statusCode: 404 });
+    }
+
+    // Delete physical files
+    const filePath = path.join(config.uploads.dir, media.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Delete variants
+    const ext = path.extname(media.filename);
+    const baseName = path.basename(media.filename, ext);
+    for (const variantName of Object.keys(config.uploads.variants)) {
+      const variantPath = path.join(config.uploads.dir, `${baseName}-${variantName}${ext}`);
+      if (fs.existsSync(variantPath)) {
+        fs.unlinkSync(variantPath);
+      }
+    }
+
+    mediaModel.delete(id);
+    logger.info(`Media deleted: ${media.filename}`);
+    return { success: true };
+  }
+}
+
+module.exports = new MediaService();

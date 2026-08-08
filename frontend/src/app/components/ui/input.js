@@ -1,55 +1,149 @@
 // ============================================
-// Web Component: Input
+// Webowo v3.0 – Input Component
 // ============================================
 
 class WebowoInput extends HTMLElement {
+  static get observedAttributes() {
+    return ['type', 'placeholder', 'label', 'required', 'error', 'value', 'name', 'rows'];
+  }
+
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
+    this.render();
+    this._bindEvents();
+  }
+
+  attributeChangedCallback() {
+    this.render();
+    this._bindEvents();
+  }
+
+  _bindEvents() {
+    const input = this.shadowRoot.querySelector('input, textarea, select');
+    if (!input) return;
+
+    input.addEventListener('input', () => {
+      this.setAttribute('value', input.value);
+      this.dispatchEvent(new CustomEvent('input-change', {
+        detail: { value: input.value, name: this.getAttribute('name') },
+        bubbles: true,
+        composed: true
+      }));
+    });
+
+    input.addEventListener('blur', () => {
+      this._validate();
+    });
+  }
+
+  _validate() {
+    const input = this.shadowRoot.querySelector('input, textarea, select');
+    const errorEl = this.shadowRoot.querySelector('.error-msg');
+    if (!input || !errorEl) return;
+
+    const isRequired = this.hasAttribute('required');
+    const isEmpty = !input.value.trim();
+
+    if (isRequired && isEmpty) {
+      input.classList.add('is-error');
+      errorEl.textContent = 'To pole jest wymagane';
+      return false;
+    }
+
+    if (input.type === 'email' && input.value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(input.value)) {
+        input.classList.add('is-error');
+        errorEl.textContent = 'Podaj prawidłowy adres e-mail';
+        return false;
+      }
+    }
+
+    input.classList.remove('is-error');
+    errorEl.textContent = '';
+    return true;
+  }
+
+  get value() {
+    return this.shadowRoot.querySelector('input, textarea, select')?.value || '';
+  }
+
+  render() {
     const type = this.getAttribute('type') || 'text';
     const placeholder = this.getAttribute('placeholder') || '';
     const label = this.getAttribute('label') || '';
     const required = this.hasAttribute('required');
+    const error = this.getAttribute('error') || '';
+    const value = this.getAttribute('value') || '';
+    const name = this.getAttribute('name') || '';
+    const rows = this.getAttribute('rows') || '4';
+
+    const isTextarea = type === 'textarea';
+    const isSelect = type === 'select';
+
+    let inputHtml = '';
+    if (isTextarea) {
+      inputHtml = `<textarea class="input" name="${name}" placeholder="${placeholder}" rows="${rows}">${value}</textarea>`;
+    } else if (isSelect) {
+      const options = (this.getAttribute('options') || '').split(',').map(o => o.trim()).filter(Boolean);
+      inputHtml = `<select class="input" name="${name}">
+        <option value="" disabled ${!value ? 'selected' : ''}>${placeholder || 'Wybierz...'}</option>
+        ${options.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
+      </select>`;
+    } else {
+      inputHtml = `<input class="input" type="${type}" name="${name}" placeholder="${placeholder}" value="${value}" ${required ? 'required' : ''} />`;
+    }
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875rem; }
-        input, textarea {
-          width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--color-border);
-          border-radius: 0.5rem; font-family: inherit; font-size: 1rem;
-          background: var(--color-surface); color: var(--color-text);
-          transition: border-color 0.2s, box-shadow 0.2s;
+        .field { display: flex; flex-direction: column; gap: var(--space-1); }
+        .label {
+          font-size: var(--text-sm);
+          font-weight: 500;
+          color: var(--color-text);
         }
-        input:focus, textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0,92,230,0.1); }
-        .error { border-color: var(--color-error); }
-        .error-msg { color: var(--color-error); font-size: 0.75rem; margin-top: 0.25rem; }
+        .label-required::after { content: ' *'; color: var(--color-error); }
+        .input {
+          padding: var(--space-3) var(--space-4);
+          font-family: var(--font-sans);
+          font-size: var(--text-base);
+          color: var(--color-text);
+          background: var(--color-surface);
+          border: 2px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+          width: 100%;
+          outline: none;
+        }
+        .input::placeholder { color: var(--color-neutral-400); }
+        .input:focus {
+          border-color: var(--color-primary-400);
+          box-shadow: 0 0 0 3px rgba(0, 92, 230, 0.1);
+          background: var(--color-bg);
+        }
+        .input.is-error {
+          border-color: var(--color-error);
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        textarea.input { resize: vertical; min-height: 120px; }
+        select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px; }
+        .error-msg {
+          font-size: var(--text-xs);
+          color: var(--color-error);
+          min-height: 1.25rem;
+        }
       </style>
-      ${label ? `<label>${label}${required ? ' *' : ''}</label>` : ''}
-      ${type === 'textarea' ? `<textarea placeholder="${placeholder}" ${required ? 'required' : ''}></textarea>` : `<input type="${type}" placeholder="${placeholder}" ${required ? 'required' : ''}>`}
-      <div class="error-msg" hidden></div>
+      <div class="field">
+        ${label ? `<label class="label ${required ? 'label-required' : ''}">${label}</label>` : ''}
+        ${inputHtml}
+        <span class="error-msg">${error}</span>
+      </div>
     `;
-
-    this._input = this.shadowRoot.querySelector('input, textarea');
-    this._input.addEventListener('input', () => this.clearError());
-  }
-
-  get value() { return this._input.value; }
-  set value(v) { this._input.value = v; }
-
-  setError(msg) {
-    this._input.classList.add('error');
-    const err = this.shadowRoot.querySelector('.error-msg');
-    err.textContent = msg;
-    err.hidden = false;
-  }
-
-  clearError() {
-    this._input.classList.remove('error');
-    this.shadowRoot.querySelector('.error-msg').hidden = true;
   }
 }
+
 customElements.define('webowo-input', WebowoInput);

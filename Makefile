@@ -1,27 +1,62 @@
-.PHONY: install dev build test backup deploy clean
+# ============================================
+# Webowo v3.0 – Makefile
+# ============================================
+
+.PHONY: install dev build docker test lint clean
 
 install:
+	@echo "📦 Instalacja zależności..."
 	cd backend && npm install
 	cd frontend && npm install
 
-dev:
-	cd backend && npm run dev &
+dev-backend:
+	cd backend && npm run dev
+
+dev-frontend:
 	cd frontend && npm run dev
 
+dev:
+	@echo "🚀 Uruchamianie backendu i frontendu..."
+	make dev-backend & make dev-frontend
+
 build:
+	@echo "🔨 Budowanie frontendu..."
 	cd frontend && npm run build
 
+docker-build:
+	@echo "🐳 Budowanie obrazów Docker..."
+	docker-compose build
+
+docker-up:
+	@echo "🐳 Uruchamianie kontenerów..."
+	docker-compose up -d
+
+docker-down:
+	@echo "🛑 Zatrzymywanie kontenerów..."
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f
+
 test:
+	@echo "🧪 Uruchamianie testów..."
 	cd backend && npm test
 	cd frontend && npm test
 
-backup:
-	cd backend && npm run backup
-
-deploy:
-	docker-compose up -d --build
+lint:
+	@echo "🔍 Sprawdzanie kodu..."
+	cd backend && npm run lint
+	cd frontend && npm run lint
 
 clean:
-	docker-compose down -v
-	find . -name 'node_modules' -type d -prune -exec rm -rf {} +
-	find . -name 'dist' -type d -prune -exec rm -rf {} +
+	@echo "🧹 Czyszczenie..."
+	./cleanup.sh
+
+backup:
+	@echo "💾 Tworzenie kopii zapasowej..."
+	cd backend && npm run backup
+
+update:
+	@echo "⬆️ Aktualizacja zależności..."
+	cd backend && npm update
+	cd frontend && npm update

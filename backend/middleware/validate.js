@@ -1,16 +1,23 @@
 // ============================================
-// Zod Validation Middleware
+// Webowo v3.0 – Validate Middleware
 // ============================================
 
-function validate(schema) {
-  return (req, res, next) => {
-    try {
-      schema.parse(req.body);
-      next();
-    } catch (err) {
-      next(err);
-    }
-  };
+const { validationResult } = require('express-validator');
+
+function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Błąd walidacji',
+      errors: errors.array().map(e => ({
+        field: e.path,
+        message: e.msg,
+        value: e.value
+      }))
+    });
+  }
+  next();
 }
 
 module.exports = { validate };

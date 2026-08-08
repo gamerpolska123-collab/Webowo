@@ -1,71 +1,82 @@
-// @ts-check
 // ============================================
-// Backup Service
+// Webowo v3.0 – Backup Service
 // ============================================
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 const config = require('../config/config');
 const { logger } = require('../utils/logger');
 
-const BackupService = {
-  createDump() {
+class BackupService {
+  async createManual() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const fileName = `webowo-backup-${timestamp}.sql`;
-    const filePath = path.join(config.cms.backupDir, fileName);
+    const backupName = `backup-${timestamp}.sqlite`;
+    const backupPath = path.join(config.cms.backupDir, backupName);
 
-    // SQLite dump
-    const dump = execSync(`sqlite3 "${config.db.path}" .dump`, { encoding: 'utf8' });
-    fs.writeFileSync(filePath, dump);
+    fs.copyFileSync(config.db.path, backupPath);
 
-    // Cleanup old backups
-    this.cleanup();
+    // Clean old backups
+    this._cleanupOldBackups();
 
-    logger.info(`Backup created: ${fileName}`);
-    return { fileName, filePath };
-  },
+    logger.info(`Manual backup created: ${backupName}`);
+    return { filename: backupName, path: backupPath, size: fs.statSync(backupPath).size };
+  }
 
-  list() {
-    if (!fs.existsSync(config.cms.backupDir)) return [];
-    return fs.readdirSync(config.cms.backupDir)
-      .filter(f => f.endsWith('.sql'))
+  async list() {
+    const files = fs.readdirSync(config.cms.backupDir)
+      .filter(f => f.endsWith('.sqlite'))
       .map(f => {
         const stat = fs.statSync(path.join(config.cms.backupDir, f));
-        return { name: f, size: stat.size, createdAt: stat.mtime };
+        return {
+          filename: f,
+          size: stat.size,
+          created_at: stat.birthtime.toISOString()
+        };
       })
-      .sort((a, b) => b.createdAt - a.createdAt);
-  },
-
-  restore(fileName) {
-    const filePath = path.join(config.cms.backupDir, fileName);
-    if (!fs.existsSync(filePath)) throw new Error('Backup file not found');
-
-    execSync(`sqlite3 "${config.db.path}" < "${filePath}"`);
-    logger.info(`Backup restored: ${fileName}`);
-    return { success: true };
-  },
-
-  cleanup() {
-    const files = this.list();
-    if (files.length > config.cms.maxBackups) {
-      const toDelete = files.slice(config.cms.maxBackups);
-      for (const file of toDelete) {
-        fs.unlinkSync(path.join(config.cms.backupDir, file.name));
-        logger.info(`Old backup removed: ${file.name}`);
-      }
-    }
-
-    // Retention policy
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - config.backup.retentionDays);
-    for (const file of files) {
-      if (file.createdAt < cutoff) {
-        fs.unlinkSync(path.join(config.cms.backupDir, file.name));
-        logger.info(`Expired backup removed: ${file.name}`);
-      }
-    }
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return files;
   }
-};
 
-module.exports = BackupService;
+  async restore(filename) {
+    const backupPath = path.join(config.cms.backupDir, filename);
+    if (!fs.existsSync(backupPath)) {
+      throw Object.assign(new Error('Backup nie istnieje'), { statusCode: 404 });
+    }
+
+    // Create safety backup of current db
+    const safetyBackup = path.join(config.cms.backupDir, `pre-restore-${Date.now()}.sqlite`);
+    fs.copyFileSync(config.db.path, safetyBackup);
+
+    fs.copyFileSync(backupPath, config.db.path);
+    logger.info(`Database restored from: ${filename}`);
+    return { success: true };
+  }
+
+  async delete(filename) {
+    const backupPath = path.join(config.cms.backupDir, filename);
+    if (!fs.existsSync(backupPath)) {
+      throw Object.assign(new Error('Backup nie istnieje'), { statusCode: 404 });
+    }
+    fs.unlinkSync(backupPath);
+    logger.info(`Backup deleted: ${filename}`);
+    return { success: true };
+  }
+
+  _cleanupOldBackups() {
+    const retentionDays = config.cms.backupRetentionDays || 30;
+    const cutoff = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+
+    fs.readdirSync(config.cms.backupDir)
+      .filter(f => f.endsWith('.sqlite') && !f.startsWith('pre-restore'))
+      .forEach(f => {
+        const filePath = path.join(config.cms.backupDir, f);
+        const stat = fs.statSync(filePath);
+        if (stat.mtimeMs < cutoff) {
+          fs.unlinkSync(filePath);
+          logger.info(`Old backup removed: ${f}`);
+        }
+      });
+  }
+}
+
+module.exports = new BackupService();

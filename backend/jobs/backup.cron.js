@@ -1,33 +1,50 @@
 // ============================================
-// Backup Cron Job
-// Usage: node jobs/backup.cron.js [manual]
+// Webowo v3.0 – Backup Cron Job
 // ============================================
 
 const cron = require('node-cron');
-const BackupService = require('../services/backup.service');
-const EmailService = require('../services/email.service');
-const { logger } = require('../utils/logger');
+const fs = require('fs');
+const path = require('path');
 const config = require('../config/config');
+const { logger } = require('../utils/logger');
 
-function runBackup() {
+function createBackup() {
   try {
-    const result = BackupService.createDump();
-    logger.info(`Scheduled backup created: ${result.fileName}`);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupName = `auto-backup-${timestamp}.sqlite`;
+    const backupPath = path.join(config.cms.backupDir, backupName);
+
+    fs.copyFileSync(config.db.path, backupPath);
+
+    // Cleanup old backups
+    const retentionDays = config.cms.backupRetentionDays || 30;
+    const cutoff = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+
+    fs.readdirSync(config.cms.backupDir)
+      .filter(f => f.startsWith('auto-backup') && f.endsWith('.sqlite'))
+      .forEach(f => {
+        const filePath = path.join(config.cms.backupDir, f);
+        if (fs.statSync(filePath).mtimeMs < cutoff) {
+          fs.unlinkSync(filePath);
+          logger.info(`Old auto-backup removed: ${f}`);
+        }
+      });
+
+    logger.info(`Auto backup created: ${backupName}`);
+    return { success: true, filename: backupName };
   } catch (err) {
-    logger.error(`Scheduled backup failed: ${err.message}`);
-    // Send alert email (optional, TODO #13)
-    EmailService.sendBackupAlert(err.message).catch(() => {});
+    logger.error('Auto backup failed:', err.message);
+    return { success: false, error: err.message };
   }
 }
 
-if (require.main === module && process.argv[2] === 'manual') {
-  runBackup();
-  process.exit(0);
+// Schedule cron job
+if (config.cms.backupCron && config.cms.backupCron !== 'none') {
+  cron.schedule(config.cms.backupCron, () => {
+    logger.info('Running scheduled backup...');
+    createBackup();
+  });
+  logger.info(`Backup cron scheduled: ${config.cms.backupCron}`);
 }
 
-if (config.backup.enabled) {
-  cron.schedule(config.backup.cron, runBackup);
-  logger.info(`Backup cron scheduled: ${config.backup.cron}`);
-}
-
-module.exports = { runBackup };
+module.exports = { createBackup };

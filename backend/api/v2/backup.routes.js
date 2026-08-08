@@ -1,27 +1,50 @@
+// ============================================
+// Webowo v3.0 – Backup Routes
+// ============================================
+
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireRole } = require('../../middleware/auth');
-const BackupService = require('../../services/backup.service');
+const backupService = require('../../services/backup.service');
+const { authenticate, requireRole } = require('../../middleware/auth');
 
-router.post('/', authenticateToken, requireRole('admin'), async (req, res, next) => {
+// POST /api/v2/backup/manual
+router.post('/manual', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    const result = BackupService.createDump();
-    res.status(201).json({ success: true, data: result });
-  } catch (err) { next(err); }
+    const result = await backupService.createManual();
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/', authenticateToken, requireRole('admin'), async (req, res, next) => {
+// GET /api/v2/backup/list
+router.get('/list', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    const backups = BackupService.list();
+    const backups = await backupService.list();
     res.json({ success: true, data: backups });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/restore', authenticateToken, requireRole('admin'), async (req, res, next) => {
+// POST /api/v2/backup/restore/:filename
+router.post('/restore/:filename', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    BackupService.restore(req.body.fileName);
-    res.json({ success: true, message: 'Baza przywrócona' });
-  } catch (err) { next(err); }
+    await backupService.restore(req.params.filename);
+    res.json({ success: true, message: 'Backup przywrócony' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/v2/backup/:filename
+router.delete('/:filename', authenticate, requireRole('admin'), async (req, res, next) => {
+  try {
+    await backupService.delete(req.params.filename);
+    res.json({ success: true, message: 'Backup usunięty' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

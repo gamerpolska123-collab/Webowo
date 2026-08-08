@@ -1,72 +1,86 @@
+// ============================================
+// Webowo v3.0 – Content Routes
+// ============================================
+
 const express = require('express');
 const router = express.Router();
-const { z } = require('zod');
-const { validate } = require('../../middleware/validate');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
-const ContentService = require('../../services/content.service');
+const { body, param, validationResult } = require('express-validator');
+const contentService = require('../../services/content.service');
+const { authenticate, requireRole } = require('../../middleware/auth');
 
-const pageSchema = z.object({
-  slug: z.string().min(1),
-  title: z.string().min(1),
-  meta: z.string().optional(),
-  status: z.enum(['draft', 'published', 'archived']).optional()
-});
+const handleValidation = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+  next();
+};
 
-router.get('/pages', async (req, res, next) => {
-  try {
-    const pages = ContentService.getAllPages();
-    res.json({ success: true, data: pages });
-  } catch (err) { next(err); }
-});
-
+// GET /api/v2/content/pages/:slug
 router.get('/pages/:slug', async (req, res, next) => {
   try {
-    const page = ContentService.getPageBySlug(req.params.slug);
-    if (!page) return res.status(404).json({ success: false, error: 'Strona nie znaleziona' });
+    const page = await contentService.getPage(req.params.slug);
+    if (!page) {
+      return res.status(404).json({ success: false, error: 'Strona nie istnieje' });
+    }
     res.json({ success: true, data: page });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/pages', authenticateToken, requireRole('admin', 'editor'), validate(pageSchema), async (req, res, next) => {
+// GET /api/v2/content/pages
+router.get('/pages', async (req, res, next) => {
   try {
-    const page = ContentService.createPage(req.body);
+    const pages = await contentService.getAllPages();
+    res.json({ success: true, data: pages });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v2/content/pages (admin only)
+router.post('/pages', authenticate, requireRole('admin', 'editor'), [
+  body('slug').trim().notEmpty().isSlug().withMessage('Slug jest wymagany'),
+  body('title').trim().notEmpty(),
+  body('sections').optional().isArray()
+], handleValidation, async (req, res, next) => {
+  try {
+    const page = await contentService.createPage(req.body);
     res.status(201).json({ success: true, data: page });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.patch('/pages/:id', authenticateToken, requireRole('admin', 'editor'), async (req, res, next) => {
+// PUT /api/v2/content/pages/:slug
+router.put('/pages/:slug', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
-    const page = ContentService.updatePage(parseInt(req.params.id), req.body);
+    const page = await contentService.updatePage(req.params.slug, req.body);
     res.json({ success: true, data: page });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/pages/:id/publish', authenticateToken, requireRole('admin'), async (req, res, next) => {
+// DELETE /api/v2/content/pages/:slug
+router.delete('/pages/:slug', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    const page = ContentService.publishPage(parseInt(req.params.id));
-    res.json({ success: true, data: page });
-  } catch (err) { next(err); }
-});
-
-router.delete('/pages/:id', authenticateToken, requireRole('admin'), async (req, res, next) => {
-  try {
-    ContentService.deletePage(parseInt(req.params.id));
+    await contentService.deletePage(req.params.slug);
     res.json({ success: true, message: 'Strona usunięta' });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/pages/:id/revisions', authenticateToken, async (req, res, next) => {
+// GET /api/v2/content/sections/:pageId
+router.get('/sections/:pageId', async (req, res, next) => {
   try {
-    const revisions = ContentService.getRevisions(parseInt(req.params.id));
-    res.json({ success: true, data: revisions });
-  } catch (err) { next(err); }
-});
-
-router.post('/pages/:id/rollback', authenticateToken, requireRole('admin'), async (req, res, next) => {
-  try {
-    ContentService.rollback(parseInt(req.params.id), req.body.revisionId);
-    res.json({ success: true, message: 'Przywrócono wersję' });
-  } catch (err) { next(err); }
+    const sections = await contentService.getSections(req.params.pageId);
+    res.json({ success: true, data: sections });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

@@ -1,35 +1,60 @@
 // ============================================
-// JWT Authentication Middleware v2
+// Webowo v3.0 – Auth Middleware
 // ============================================
 
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
-const AuthService = require('../services/auth.service');
+const { logger } = require('../utils/logger');
 
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'Brak tokena autoryzacyjnego. Zaloguj się ponownie.' });
+    return res.status(401).json({ success: false, error: 'Brak tokenu autoryzacji' });
   }
 
   try {
-    const decoded = AuthService.verifyAccessToken(token);
+    const decoded = jwt.verify(token, config.jwt.secret, {
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience
+    });
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ success: false, error: 'Token wygasł lub jest nieprawidłowy.' });
+    logger.warn(`JWT verification failed: ${err.message}`);
+    return res.status(401).json({ success: false, error: 'Nieprawidłowy lub wygasły token' });
   }
 }
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ success: false, error: 'Brak uprawnień.' });
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: 'Wymagana autoryzacja' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'Brak uprawnień' });
     }
     next();
   };
 }
 
-module.exports = { authenticateToken, requireRole };
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, config.jwt.secret, {
+        issuer: config.jwt.issuer,
+        audience: config.jwt.audience
+      });
+      req.user = decoded;
+    } catch (err) {
+      // Silent fail for optional auth
+    }
+  }
+  next();
+}
+
+module.exports = { authenticate, requireRole, optionalAuth };

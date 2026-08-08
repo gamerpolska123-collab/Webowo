@@ -1,6 +1,5 @@
 // ============================================
-// Webowo v2.0 – Server Entry Point
-// Etap 5 – Backend Modernizacja (Docker-ready)
+// Webowo v3.0 – Server Entry Point
 // ============================================
 
 const app = require('./app');
@@ -14,11 +13,18 @@ const dirs = [
   path.dirname(config.db.path),
   config.cms.backupDir,
   config.uploads.dir,
-  config.gdpr.logDir
+  config.gdpr.logDir,
+  config.log.dir
 ];
-dirs.forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 
-// Helper: clean SQL by removing comment lines and empty lines
+dirs.forEach(d => {
+  if (!fs.existsSync(d)) {
+    fs.mkdirSync(d, { recursive: true });
+    logger.info(`Created directory: ${d}`);
+  }
+});
+
+// Clean SQL helper
 function cleanSql(sql) {
   return sql
     .split('\n')
@@ -27,56 +33,58 @@ function cleanSql(sql) {
     .join('\n');
 }
 
-// Auto-run migrations on startup
+// Auto-run migrations
 const db = require('./db/database');
 const MIGRATIONS_DIR = path.join(__dirname, 'db', 'migrations');
-const migrationFiles = fs.readdirSync(MIGRATIONS_DIR)
-  .filter(f => /^\d+_.*\.sql$/.test(f))
-  .sort();
 
-for (const file of migrationFiles) {
-  const rawSql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
-  const sql = cleanSql(rawSql);
+if (fs.existsSync(MIGRATIONS_DIR)) {
+  const migrationFiles = fs.readdirSync(MIGRATIONS_DIR)
+    .filter(f => /^\d+_.*\.sql$/.test(f))
+    .sort();
 
-  console.log(`[MIGRATE] Applying ${file}...`);
-  try {
-    db.exec(sql);
-    console.log(`[MIGRATE] ✅ ${file} applied`);
-    logger.info(`Migration applied: ${file}`);
-  } catch (err) {
-    console.error(`[MIGRATE] ❌ ${file} failed: ${err.message}`);
-    console.error(`[MIGRATE] SQL preview: ${sql.substring(0, 500)}`);
-    throw err;
-  }
-}
-
-// Seed if no users exist
-const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-if (userCount === 0) {
-  const SEEDS_DIR = path.join(__dirname, 'db', 'seeds');
-  const seedFile = path.join(SEEDS_DIR, 'seed.sql');
-  if (fs.existsSync(seedFile)) {
-    const bcrypt = require('bcryptjs');
-    let rawSql = fs.readFileSync(seedFile, 'utf8');
-    const hash = bcrypt.hashSync(config.admin.password, config.security.bcryptRounds);
-    rawSql = rawSql.replace('$SEED_ADMIN_HASH$', hash);
+  for (const file of migrationFiles) {
+    const rawSql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
     const sql = cleanSql(rawSql);
 
-    console.log(`[SEED] Applying seed...`);
     try {
       db.exec(sql);
-      console.log(`[SEED] ✅ Seed applied`);
-      logger.info('Seed data applied');
+      logger.info(`Migration applied: ${file}`);
     } catch (err) {
-      console.error(`[SEED] ❌ Seed failed: ${err.message}`);
-      throw err;
+      if (err.message.includes('already exists') || err.message.includes('duplicate')) {
+        logger.debug(`Migration skipped (already applied): ${file}`);
+      } else {
+        logger.error(`Migration failed: ${file} – ${err.message}`);
+        throw err;
+      }
     }
   }
 }
 
-// Cleanup expired refresh tokens on startup
+// Seed if no users exist
+try {
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+  if (userCount === 0) {
+    const SEEDS_DIR = path.join(__dirname, 'db', 'seeds');
+    const seedFile = path.join(SEEDS_DIR, 'seed.sql');
+    if (fs.existsSync(seedFile)) {
+      const bcrypt = require('bcryptjs');
+      let rawSql = fs.readFileSync(seedFile, 'utf8');
+      const hash = bcrypt.hashSync(config.admin.password, config.security.bcryptRounds);
+      rawSql = rawSql.replace('$SEED_ADMIN_HASH$', hash);
+      const sql = cleanSql(rawSql);
+
+      db.exec(sql);
+      logger.info('Seed data applied');
+    }
+  }
+} catch (e) {
+  logger.warn('Seed check skipped: ' + e.message);
+}
+
+// Cleanup expired refresh tokens
 try {
   db.prepare(`DELETE FROM refresh_tokens WHERE expires_at < datetime('now')`).run();
+  logger.info('Expired refresh tokens cleaned up');
 } catch (e) {
   logger.warn('Refresh tokens cleanup skipped: ' + e.message);
 }
@@ -84,12 +92,35 @@ try {
 // Start backup cron
 require('./jobs/backup.cron');
 
-const PORT = config.port;
-const NODE_ENV = config.nodeEnv;
-
-app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`🚀 Webowo Backend v${config.appVersion} nasłuchuje na porcie ${PORT} [${NODE_ENV}]`);
+// Graceful shutdown
+const server = app.listen(config.port, '0.0.0.0', () => {
+  logger.info(`🚀 Webowo Backend v${config.appVersion} listening on port ${config.port} [${config.nodeEnv}]`);
   logger.info(`📁 Database: ${config.db.path}`);
   logger.info(`💾 Backup dir: ${config.cms.backupDir}`);
   logger.info(`📤 Upload dir: ${config.uploads.dir}`);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received. Shutting down gracefully...');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

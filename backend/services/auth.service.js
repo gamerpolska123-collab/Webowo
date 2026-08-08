@@ -1,90 +1,130 @@
 // ============================================
-// Auth Service – JWT + Refresh Tokens
+// Webowo v3.0 – Auth Service
 // ============================================
 
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const config = require('../config/config');
-const UserModel = require('../models/user.model');
+const userModel = require('../models/user.model');
 const db = require('../db/database');
+const { logger } = require('../utils/logger');
 
-const RefreshService = {
-  create(userId) {
-    const token = crypto.randomBytes(64).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    db.prepare(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`).run(userId, token, expiresAt);
-    return token;
-  },
+function generateTokens(user) {
+  const payload = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role
+  };
 
-  findByToken(token) {
-    return db.prepare('SELECT * FROM refresh_tokens WHERE token = ?').get(token);
-  },
+  const accessToken = jwt.sign(payload, config.jwt.secret, {
+    expiresIn: config.jwt.accessExpiresIn,
+    issuer: config.jwt.issuer,
+    audience: config.jwt.audience
+  });
 
-  deleteByToken(token) {
-    return db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(token);
-  },
+  const refreshToken = jwt.sign(
+    { id: user.id, type: 'refresh' },
+    config.jwt.refreshSecret,
+    { expiresIn: config.jwt.refreshExpiresIn }
+  );
 
-  deleteAllForUser(userId) {
-    return db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(userId);
-  },
+  // Store refresh token
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+  db.prepare(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`).run(user.id, refreshToken, expiresAt.toISOString());
 
-  cleanupExpired() {
-    return db.prepare(`DELETE FROM refresh_tokens WHERE expires_at < datetime('now')`).run();
-  }
-};
+  return { accessToken, refreshToken, expiresIn: config.jwt.accessExpiresIn };
+}
 
-const AuthService = {
-  async register({ username, email, password, role = 'editor' }) {
-    const existingUser = UserModel.findByUsername(username) || UserModel.findByEmail(email);
-    if (existingUser) throw new Error('Użytkownik o podanej nazwie lub emailu już istnieje');
-    const passwordHash = await bcrypt.hash(password, config.security.bcryptRounds);
-    const user = UserModel.create({ username, email, passwordHash, role });
-    return { id: user.id, username: user.username, email: user.email, role: user.role };
-  },
+class AuthService {
+  async login({ username, password }) {
+    const user = userModel.findByUsername(username);
+    if (!user) {
+      throw Object.assign(new Error('Nieprawidłowe dane logowania'), { statusCode: 401 });
+    }
 
-  async login({ username, password, ip }) {
-    const user = UserModel.findByUsername(username);
-    if (!user || !user.is_active) throw new Error('Nieprawidłowa nazwa użytkownika lub hasło');
+    if (!user.is_active) {
+      throw Object.assign(new Error('Konto jest nieaktywne'), { statusCode: 403 });
+    }
+
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) throw new Error('Nieprawidłowa nazwa użytkownika lub hasło');
-    UserModel.updateLastLogin(user.id);
-    const accessToken = this.generateAccessToken(user);
-    const refreshToken = RefreshService.create(user.id);
-    return { user: { id: user.id, username: user.username, email: user.email, role: user.role }, accessToken, refreshToken };
-  },
+    if (!valid) {
+      logger.warn(`Failed login attempt for user: ${username}`);
+      throw Object.assign(new Error('Nieprawidłowe dane logowania'), { statusCode: 401 });
+    }
+
+    // Update last login
+    db.prepare(`UPDATE users SET last_login = datetime('now') WHERE id = ?`).run(user.id);
+
+    logger.info(`User logged in: ${username}`);
+    return generateTokens(user);
+  }
 
   async refresh(refreshToken) {
-    if (!refreshToken) throw new Error('Brak refresh tokena');
-    const stored = RefreshService.findByToken(refreshToken);
-    if (!stored || new Date(stored.expires_at) < new Date()) throw new Error('Refresh token wygasł');
-    const user = UserModel.findById(stored.user_id);
-    if (!user || !user.is_active) throw new Error('Użytkownik nieaktywny');
-    const accessToken = this.generateAccessToken(user);
-    return { accessToken, user: { id: user.id, username: user.username, role: user.role } };
-  },
+    if (!refreshToken) {
+      throw Object.assign(new Error('Brak tokenu odświeżania'), { statusCode: 401 });
+    }
+
+    // Check if token exists and is not revoked
+    const stored = db.prepare(`SELECT * FROM refresh_tokens WHERE token = ? AND revoked = 0 AND expires_at > datetime('now')`).get(refreshToken);
+    if (!stored) {
+      throw Object.assign(new Error('Nieprawidłowy lub wygasły token'), { statusCode: 401 });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, config.jwt.refreshSecret);
+    } catch {
+      throw Object.assign(new Error('Nieprawidłowy token'), { statusCode: 401 });
+    }
+
+    const user = userModel.findById(decoded.id);
+    if (!user || !user.is_active) {
+      throw Object.assign(new Error('Użytkownik nie istnieje lub jest nieaktywny'), { statusCode: 401 });
+    }
+
+    // Revoke old token
+    db.prepare(`UPDATE refresh_tokens SET revoked = 1 WHERE token = ?`).run(refreshToken);
+
+    return generateTokens(user);
+  }
 
   async logout(refreshToken) {
-    if (refreshToken) RefreshService.deleteByToken(refreshToken);
-    return true;
-  },
-
-  async logoutAll(userId) {
-    RefreshService.deleteAllForUser(userId);
-    return true;
-  },
-
-  generateAccessToken(user) {
-    return jwt.sign(
-      { sub: user.id, username: user.username, role: user.role },
-      config.jwt.secret,
-      { expiresIn: config.jwt.accessExpiresIn }
-    );
-  },
-
-  verifyAccessToken(token) {
-    return jwt.verify(token, config.jwt.secret);
+    if (refreshToken) {
+      db.prepare(`UPDATE refresh_tokens SET revoked = 1 WHERE token = ?`).run(refreshToken);
+    }
+    return { success: true };
   }
-};
 
-module.exports = AuthService;
+  async getMe(userId) {
+    const user = userModel.findById(userId);
+    if (!user) {
+      throw Object.assign(new Error('Użytkownik nie istnieje'), { statusCode: 404 });
+    }
+    return user;
+  }
+
+  async changePassword(userId, { currentPassword, newPassword }) {
+    const user = db.prepare(`SELECT * FROM users WHERE id = ?`).get(userId);
+    if (!user) {
+      throw Object.assign(new Error('Użytkownik nie istnieje'), { statusCode: 404 });
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) {
+      throw Object.assign(new Error('Aktualne hasło jest nieprawidłowe'), { statusCode: 400 });
+    }
+
+    const hash = await bcrypt.hash(newPassword, config.security.bcryptRounds);
+    db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`).run(hash, userId);
+
+    // Revoke all refresh tokens for this user
+    db.prepare(`UPDATE refresh_tokens SET revoked = 1 WHERE user_id = ?`).run(userId);
+
+    logger.info(`Password changed for user: ${user.username}`);
+    return { success: true };
+  }
+}
+
+module.exports = new AuthService();

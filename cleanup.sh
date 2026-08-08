@@ -1,17 +1,18 @@
 #!/bin/bash
 # ============================================
-# Webowo v2.0 – Cleanup Script
+# Webowo v3.0 – Cleanup Script
 # ============================================
 
-echo "🧹 Cleaning up..."
+echo "🧹 Czyszczenie projektu Webowo..."
 
 # Remove node_modules
-find . -name 'node_modules' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+rm -rf backend/node_modules frontend/node_modules
 
-# Remove dist
-find . -name 'dist' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+# Remove build artifacts
+rm -rf frontend/dist
+rm -rf backend/data/logs/* backend/data/backups/*
 
-# Remove Docker volumes
-docker-compose down -v 2>/dev/null || true
+# Remove lock files (optional)
+# rm backend/package-lock.json frontend/package-lock.json
 
-echo "✅ Cleanup complete"
+echo "✅ Wyczyszczono. Uruchom ./install.sh, aby ponownie zainstalować."

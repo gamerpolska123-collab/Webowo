@@ -1,26 +1,24 @@
 # ============================================
-# Webowo Backend – Dockerfile
+# Webowo v3.0 – Backend Dockerfile
 # ============================================
 
-FROM node:22-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies (npm install instead of npm ci - no package-lock.json)
-COPY package*.json ./
-RUN npm install --omit=dev
+# Install dependencies for sharp
+RUN apk add --no-cache python3 make g++ vips-dev
 
-# Copy source
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
 COPY . .
 
 # Create data directories
-RUN mkdir -p /app/data/db /app/data/backups /app/data/uploads /app/data/logs
+RUN mkdir -p /app/data/db /app/data/uploads /app/data/backups /app/data/logs /app/data/gdpr
 
-# Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+USER node
 
 CMD ["node", "server.js"]

@@ -1,52 +1,63 @@
-// @ts-check
 // ============================================
-// Page Model
+// Webowo v3.0 – Page Model
 // ============================================
 
 const db = require('../db/database');
 
-const PageModel = {
-  create({ slug, title, meta = '{}', status = 'draft' }) {
-    const stmt = db.prepare(
-      `INSERT INTO pages (slug, title, meta, status) VALUES (?, ?, ?, ?)`
-    );
-    const result = stmt.run(slug, title, meta, status);
-    return this.findById(result.lastInsertRowid);
-  },
+class PageModel {
+  constructor() {
+    this.table = 'pages';
+  }
 
-  findById(id) {
-    return db.prepare('SELECT * FROM pages WHERE id = ?').get(id);
-  },
+  findAll(options = {}) {
+    const { limit = 50, offset = 0, isActive } = options;
+    let sql = `SELECT id, slug, title, meta_description, is_active, created_at, updated_at FROM ${this.table}`;
+    const params = [];
+    if (isActive !== undefined) {
+      sql += ' WHERE is_active = ?';
+      params.push(isActive ? 1 : 0);
+    }
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    return db.prepare(sql).all(...params);
+  }
 
   findBySlug(slug) {
-    return db.prepare('SELECT * FROM pages WHERE slug = ?').get(slug);
-  },
+    return db.prepare(`SELECT * FROM ${this.table} WHERE slug = ?`).get(slug);
+  }
 
-  findAll() {
-    return db.prepare('SELECT id, slug, title, status, created_at, updated_at, published_at FROM pages').all();
-  },
+  findById(id) {
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`).get(id);
+  }
 
-  findPublished() {
-    return db.prepare("SELECT * FROM pages WHERE status = 'published'").all();
-  },
+  create(data) {
+    const { slug, title, meta_description, is_active = 1 } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (slug, title, meta_description, is_active) VALUES (?, ?, ?, ?)`).run(slug, title, meta_description, is_active);
+    return this.findById(result.lastInsertRowid);
+  }
 
-  update(id, fields) {
-    const keys = Object.keys(fields);
-    const setClause = keys.map(k => `${k} = ?`).join(', ');
-    const stmt = db.prepare(`UPDATE pages SET ${setClause}, updated_at = datetime('now') WHERE id = ?`);
-    stmt.run(...keys.map(k => fields[k]), id);
+  update(id, data) {
+    const fields = [];
+    const values = [];
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+    if (fields.length === 0) return this.findById(id);
+    values.push(id);
+    db.prepare(`UPDATE ${this.table} SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
     return this.findById(id);
-  },
-
-  publish(id) {
-    db.prepare("UPDATE pages SET status = 'published', published_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(id);
-    return this.findById(id);
-  },
+  }
 
   delete(id) {
-    db.prepare('DELETE FROM pages WHERE id = ?').run(id);
-    return { success: true };
+    return db.prepare(`DELETE FROM ${this.table} WHERE id = ?`).run(id);
   }
-};
 
-module.exports = PageModel;
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get().count;
+  }
+}
+
+module.exports = new PageModel();

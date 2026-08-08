@@ -1,75 +1,100 @@
-// @ts-check
 // ============================================
-// Content Service
+// Webowo v3.0 – Content Service
 // ============================================
 
-const PageModel = require('../models/page.model');
-const SectionModel = require('../models/section.model');
-const RevisionModel = require('../models/revision.model');
+const pageModel = require('../models/page.model');
+const sectionModel = require('../models/section.model');
+const revisionModel = require('../models/revision.model');
+const { logger } = require('../utils/logger');
 
-const ContentService = {
-  createPage(data) {
-    const page = PageModel.create(data);
-    return page;
-  },
-
-  getPageBySlug(slug) {
-    const page = PageModel.findBySlug(slug);
+class ContentService {
+  async getPage(slug) {
+    const page = pageModel.findBySlug(slug);
     if (!page) return null;
-    const sections = SectionModel.findByPageId(page.id);
-    return { ...page, sections };
-  },
 
-  getAllPages() {
-    return PageModel.findAll();
-  },
+    const sections = sectionModel.findByPageId(page.id, { isActive: true });
+    return {
+      ...page,
+      sections: sections.map(s => ({
+        ...s,
+        data: JSON.parse(s.data || '{}')
+      }))
+    };
+  }
 
-  updatePage(id, data) {
-    return PageModel.update(id, data);
-  },
+  async getAllPages(options = {}) {
+    return pageModel.findAll(options);
+  }
 
-  publishPage(id) {
-    return PageModel.publish(id);
-  },
-
-  deletePage(id) {
-    SectionModel.deleteByPageId(id);
-    return PageModel.delete(id);
-  },
-
-  createSection(data) {
-    return SectionModel.create(data);
-  },
-
-  updateSection(id, data) {
-    const section = SectionModel.findById(id);
-    if (section) {
-      RevisionModel.create({
-        pageId: section.page_id,
-        sectionId: section.id,
-        data: section.data,
-        createdBy: data.updatedBy,
-        note: data.note || 'Auto-saved before update'
+  async createPage(data) {
+    const page = pageModel.create(data);
+    if (data.sections && Array.isArray(data.sections)) {
+      data.sections.forEach((section, index) => {
+        sectionModel.create({
+          page_id: page.id,
+          type: section.type,
+          data: section.data,
+          order_index: section.order_index || index,
+          is_active: section.is_active !== undefined ? section.is_active : 1
+        });
       });
     }
-    return SectionModel.update(id, data);
-  },
+    logger.info(`Page created: ${page.slug}`);
+    return this.getPage(page.slug);
+  }
 
-  getRevisions(pageId, limit = 50) {
-    return RevisionModel.findByPageId(pageId, limit);
-  },
+  async updatePage(slug, data) {
+    const existing = pageModel.findBySlug(slug);
+    if (!existing) {
+      throw Object.assign(new Error('Strona nie istnieje'), { statusCode: 404 });
+    }
 
-  rollback(pageId, revisionId) {
-    const revision = RevisionModel.findById(revisionId);
-    if (!revision || revision.page_id !== pageId) {
-      throw new Error('Revision not found');
+    // Create revision before update
+    revisionModel.create({
+      entity_type: 'page',
+      entity_id: existing.id,
+      data: existing,
+      created_by: data.updated_by
+    });
+
+    const page = pageModel.update(existing.id, {
+      title: data.title,
+      meta_description: data.meta_description,
+      is_active: data.is_active
+    });
+
+    // Update sections if provided
+    if (data.sections && Array.isArray(data.sections)) {
+      sectionModel.deleteByPageId(page.id);
+      data.sections.forEach((section, index) => {
+        sectionModel.create({
+          page_id: page.id,
+          type: section.type,
+          data: section.data,
+          order_index: section.order_index || index,
+          is_active: section.is_active !== undefined ? section.is_active : 1
+        });
+      });
     }
-    const section = SectionModel.findById(revision.section_id);
-    if (section) {
-      SectionModel.update(section.id, { data: revision.data });
+
+    logger.info(`Page updated: ${slug}`);
+    return this.getPage(slug);
+  }
+
+  async deletePage(slug) {
+    const page = pageModel.findBySlug(slug);
+    if (!page) {
+      throw Object.assign(new Error('Strona nie istnieje'), { statusCode: 404 });
     }
+    sectionModel.deleteByPageId(page.id);
+    pageModel.delete(page.id);
+    logger.info(`Page deleted: ${slug}`);
     return { success: true };
   }
-};
 
-module.exports = ContentService;
+  async getSections(pageId) {
+    return sectionModel.findByPageId(pageId);
+  }
+}
+
+module.exports = new ContentService();

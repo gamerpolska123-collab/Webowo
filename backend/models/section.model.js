@@ -1,43 +1,58 @@
-// @ts-check
 // ============================================
-// Section Model
+// Webowo v3.0 – Section Model
 // ============================================
 
 const db = require('../db/database');
 
-const SectionModel = {
-  create({ pageId, type, orderIndex = 0, data = '{}', isActive = 1 }) {
-    const stmt = db.prepare(
-      `INSERT INTO sections (page_id, type, order_index, data, is_active) VALUES (?, ?, ?, ?, ?)`
-    );
-    const result = stmt.run(pageId, type, orderIndex, data, isActive);
-    return this.findById(result.lastInsertRowid);
-  },
+class SectionModel {
+  constructor() {
+    this.table = 'sections';
+  }
+
+  findByPageId(pageId, options = {}) {
+    const { isActive } = options;
+    let sql = `SELECT * FROM ${this.table} WHERE page_id = ?`;
+    const params = [pageId];
+    if (isActive !== undefined) {
+      sql += ' AND is_active = ?';
+      params.push(isActive ? 1 : 0);
+    }
+    sql += ' ORDER BY order_index ASC';
+    return db.prepare(sql).all(...params);
+  }
 
   findById(id) {
-    return db.prepare('SELECT * FROM sections WHERE id = ?').get(id);
-  },
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`).get(id);
+  }
 
-  findByPageId(pageId) {
-    return db.prepare('SELECT * FROM sections WHERE page_id = ? ORDER BY order_index ASC').all(pageId);
-  },
+  create(data) {
+    const { page_id, type, data: sectionData, order_index = 0, is_active = 1 } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (page_id, type, data, order_index, is_active) VALUES (?, ?, ?, ?, ?)`).run(page_id, type, JSON.stringify(sectionData), order_index, is_active);
+    return this.findById(result.lastInsertRowid);
+  }
 
-  update(id, fields) {
-    const keys = Object.keys(fields);
-    const setClause = keys.map(k => `${k} = ?`).join(', ');
-    const stmt = db.prepare(`UPDATE sections SET ${setClause}, updated_at = datetime('now') WHERE id = ?`);
-    stmt.run(...keys.map(k => fields[k]), id);
+  update(id, data) {
+    const fields = [];
+    const values = [];
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(key === 'data' ? JSON.stringify(value) : value);
+      }
+    });
+    if (fields.length === 0) return this.findById(id);
+    values.push(id);
+    db.prepare(`UPDATE ${this.table} SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
     return this.findById(id);
-  },
+  }
 
   delete(id) {
-    db.prepare('DELETE FROM sections WHERE id = ?').run(id);
-    return { success: true };
-  },
+    return db.prepare(`DELETE FROM ${this.table} WHERE id = ?`).run(id);
+  }
 
   deleteByPageId(pageId) {
-    db.prepare('DELETE FROM sections WHERE page_id = ?').run(pageId);
+    return db.prepare(`DELETE FROM ${this.table} WHERE page_id = ?`).run(pageId);
   }
-};
+}
 
-module.exports = SectionModel;
+module.exports = new SectionModel();

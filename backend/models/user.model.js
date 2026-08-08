@@ -1,51 +1,59 @@
-// @ts-check
 // ============================================
-// User Model
+// Webowo v3.0 – User Model
 // ============================================
 
 const db = require('../db/database');
 
-const UserModel = {
-  create({ username, email, passwordHash, role = 'editor' }) {
-    const stmt = db.prepare(
-      `INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)`
-    );
-    const result = stmt.run(username, email, passwordHash, role);
-    return this.findById(result.lastInsertRowid);
-  },
+class UserModel {
+  constructor() {
+    this.table = 'users';
+  }
+
+  findAll(options = {}) {
+    const { limit = 50, offset = 0 } = options;
+    return db.prepare(`SELECT id, username, email, role, is_active, created_at, updated_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+  }
 
   findById(id) {
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
-  },
+    return db.prepare(`SELECT id, username, email, role, is_active, created_at, updated_at FROM ${this.table} WHERE id = ?`).get(id);
+  }
 
   findByUsername(username) {
-    return db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-  },
+    return db.prepare(`SELECT * FROM ${this.table} WHERE username = ?`).get(username);
+  }
 
   findByEmail(email) {
-    return db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-  },
+    return db.prepare(`SELECT * FROM ${this.table} WHERE email = ?`).get(email);
+  }
 
-  findAll() {
-    return db.prepare('SELECT id, username, email, role, is_active, last_login_at, created_at FROM users').all();
-  },
+  create(data) {
+    const { username, email, password_hash, role = 'editor' } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (username, email, password_hash, role) VALUES (?, ?, ?, ?)`).run(username, email, password_hash, role);
+    return this.findById(result.lastInsertRowid);
+  }
 
-  update(id, fields) {
-    const keys = Object.keys(fields);
-    const setClause = keys.map(k => `${k} = ?`).join(', ');
-    const stmt = db.prepare(`UPDATE users SET ${setClause}, updated_at = datetime('now') WHERE id = ?`);
-    stmt.run(...keys.map(k => fields[k]), id);
+  update(id, data) {
+    const fields = [];
+    const values = [];
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        fields.push(`${key} = ?`);
+        values.push(value);
+      }
+    });
+    if (fields.length === 0) return this.findById(id);
+    values.push(id);
+    db.prepare(`UPDATE ${this.table} SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values);
     return this.findById(id);
-  },
-
-  updateLastLogin(id) {
-    db.prepare(`UPDATE users SET last_login_at = datetime('now') WHERE id = ?`).run(id);
-  },
+  }
 
   delete(id) {
-    db.prepare('DELETE FROM users WHERE id = ?').run(id);
-    return { success: true };
+    return db.prepare(`DELETE FROM ${this.table} WHERE id = ?`).run(id);
   }
-};
 
-module.exports = UserModel;
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get().count;
+  }
+}
+
+module.exports = new UserModel();

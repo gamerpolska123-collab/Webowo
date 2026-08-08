@@ -1,12 +1,16 @@
--- Seed Data
-INSERT INTO users (username, email, password_hash, role, is_active) VALUES
-  ('admin', 'admin@webowo.pl', '$SEED_ADMIN_HASH$', 'admin', 1);
+-- ============================================
+-- Webowo v3.0 – Seed Data
+-- ============================================
 
-INSERT INTO settings (key, value, type, is_public) VALUES
-  ('site_title', 'Matys WebDev | Tworzenie Stron Internetowych', 'string', 1),
-  ('site_description', 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.', 'string', 1),
-  ('contact_email', 'kontakt@matys.net.pl', 'string', 1),
-  ('contact_phone', '+48 123 456 789', 'string', 1);
+-- Admin user (password hash injected by server.js)
+INSERT OR IGNORE INTO users (username, email, password_hash, role, is_active) VALUES ('admin', 'admin@webowo.pl', '$SEED_ADMIN_HASH$', 'admin', 1);
 
-INSERT INTO pages (slug, title, meta_title, meta_description, is_published) VALUES
-  ('home', 'Strona główna', 'Matys WebDev', 'Tworzenie stron internetowych', 1);
+-- Default page
+INSERT OR IGNORE INTO pages (slug, title, meta_description, is_active) VALUES ('home', 'Strona główna', 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.', 1);
+
+-- Default settings
+INSERT OR IGNORE INTO settings (key, value, is_public) VALUES ('site_title', 'Matys WebDev', 1);
+INSERT OR IGNORE INTO settings (key, value, is_public) VALUES ('site_description', 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.', 1);
+INSERT OR IGNORE INTO settings (key, value, is_public) VALUES ('theme_color', '#005ce6', 1);
+INSERT OR IGNORE INTO settings (key, value, is_public) VALUES ('contact_email', 'kontakt@matys.net.pl', 1);
+INSERT OR IGNORE INTO settings (key, value, is_public) VALUES ('analytics_enabled', 'true', 0);

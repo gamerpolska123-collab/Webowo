@@ -1,34 +1,27 @@
-// @ts-check
 // ============================================
-// Database Connection
+// Webowo v3.0 – Database Connection
 // ============================================
 
 const Database = require('better-sqlite3');
 const path = require('path');
 const config = require('../config/config');
-const { logger } = require('../utils/logger');
 
-let db = null;
+const db = new Database(config.db.path);
 
-function getDb() {
-  if (!db) {
-    db = new Database(config.db.path);
-    db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
-    db.pragma('synchronous = NORMAL');
-    db.pragma('temp_store = MEMORY');
-    db.pragma('mmap_size = 30000000000');
-    logger.info(`Database connected: ${config.db.path}`);
+// Apply PRAGMAs
+config.db.pragma.forEach(sql => {
+  try {
+    db.exec(sql);
+  } catch (e) {
+    console.warn(`[DB] PRAGMA failed: ${sql} – ${e.message}`);
   }
-  return db;
+});
+
+// Enable WAL mode explicitly
+try {
+  db.exec('PRAGMA journal_mode = WAL');
+} catch (e) {
+  console.warn('[DB] WAL mode failed:', e.message);
 }
 
-function closeDb() {
-  if (db) {
-    db.close();
-    db = null;
-    logger.info('Database connection closed');
-  }
-}
-
-module.exports = { getDb, closeDb };
+module.exports = db;

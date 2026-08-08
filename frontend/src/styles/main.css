@@ -1,4 +1,230 @@
+/* ============================================
+   Webowo v3.0 – Main Styles Entry
+   ============================================ */
+
 @import './tokens/colors.css';
 @import './base/typography.css';
 @import './layout/grid.css';
 @import './components/buttons.css';
+
+/* ============================================
+   Animation Keyframes
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px -5px var(--color-primary-400); }
+  50% { box-shadow: 0 0 40px -5px var(--color-primary-400); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+/* ============================================
+   Scroll-triggered Animation Classes
+   ============================================ */
+
+[data-animate] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animate="fade"] {
+  transform: none;
+}
+[data-animate="fade"].is-visible {
+  opacity: 1;
+}
+
+[data-animate="scale"] {
+  transform: scale(0.95);
+}
+[data-animate="scale"].is-visible {
+  transform: scale(1);
+}
+
+[data-animate="slide-left"] {
+  transform: translateX(-30px);
+}
+[data-animate="slide-left"].is-visible {
+  transform: translateX(0);
+}
+
+[data-animate="slide-right"] {
+  transform: translateX(30px);
+}
+[data-animate="slide-right"].is-visible {
+  transform: translateX(0);
+}
+
+/* Stagger delays */
+[data-animate-delay="1"] { transition-delay: 0.1s; }
+[data-animate-delay="2"] { transition-delay: 0.2s; }
+[data-animate-delay="3"] { transition-delay: 0.3s; }
+[data-animate-delay="4"] { transition-delay: 0.4s; }
+[data-animate-delay="5"] { transition-delay: 0.5s; }
+[data-animate-delay="6"] { transition-delay: 0.6s; }
+
+/* ============================================
+   Section Entrance Animations
+   ============================================ */
+
+webowo-section-hero,
+webowo-section-about,
+webowo-section-services,
+webowo-section-portfolio,
+webowo-section-process,
+webowo-section-pricing,
+webowo-section-faq,
+webowo-section-contact,
+webowo-section-footer {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+webowo-section-hero.animate-in,
+webowo-section-about.animate-in,
+webowo-section-services.animate-in,
+webowo-section-portfolio.animate-in,
+webowo-section-process.animate-in,
+webowo-section-pricing.animate-in,
+webowo-section-faq.animate-in,
+webowo-section-contact.animate-in,
+webowo-section-footer.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hero animates immediately */
+webowo-section-hero {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================
+   Skeleton Shimmer
+   ============================================ */
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-neutral-100) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+[data-theme="dark"] .skeleton-shimmer,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-neutral-800) 25%,
+      var(--color-neutral-700) 50%,
+      var(--color-neutral-800) 75%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+/* ============================================
+   Skip Link (Accessibility)
+   ============================================ */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-tooltip);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-primary-500);
+  color: white;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  transition: top var(--transition-fast);
+}
+.skip-link:focus {
+  top: var(--space-4);
+}

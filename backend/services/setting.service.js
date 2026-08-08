@@ -1,34 +1,26 @@
-// @ts-check
 // ============================================
-// Setting Service
+// Webowo v3.0 – Setting Service
 // ============================================
 
-const SettingModel = require('../models/setting.model');
+const settingModel = require('../models/setting.model');
 
-const SettingService = {
-  getAll() {
-    return SettingModel.findAll();
-  },
-
-  getPublic() {
-    return SettingModel.findPublic();
-  },
-
-  getByKey(key) {
-    return SettingModel.findByKey(key);
-  },
-
-  update(key, value) {
-    return SettingModel.update(key, value);
-  },
-
-  create(data) {
-    return SettingModel.create(data);
-  },
-
-  delete(id) {
-    return SettingModel.delete(id);
+class SettingService {
+  async getPublic() {
+    const settings = settingModel.findPublic();
+    const result = {};
+    settings.forEach(s => {
+      result[s.key] = s.value;
+    });
+    return result;
   }
-};
 
-module.exports = SettingService;
+  async getAll() {
+    return settingModel.findAll();
+  }
+
+  async set(key, value, isPublic = false) {
+    return settingModel.set(key, value, isPublic);
+  }
+}
+
+module.exports = new SettingService();

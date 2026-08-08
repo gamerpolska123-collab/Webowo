@@ -1,35 +1,36 @@
-// @ts-check
 // ============================================
-// Media Model
+// Webowo v3.0 – Media Model
 // ============================================
 
 const db = require('../db/database');
 
-const MediaModel = {
-  create({ filename, originalName, mimeType, size, width, height, variants, altText, url }) {
-    const stmt = db.prepare(
-      `INSERT INTO media (filename, original_name, mime_type, size, width, height, variants, alt_text, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-    const result = stmt.run(filename, originalName, mimeType, size, width, height, variants, altText, url);
-    return this.findById(result.lastInsertRowid);
-  },
+class MediaModel {
+  constructor() {
+    this.table = 'media';
+  }
+
+  findAll(options = {}) {
+    const { limit = 20, offset = 0 } = options;
+    return db.prepare(`SELECT id, filename, original_name, mime_type, size, width, height, url, created_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+  }
+
+  count() {
+    return db.prepare(`SELECT COUNT(*) as count FROM ${this.table}`).get().count;
+  }
 
   findById(id) {
-    return db.prepare('SELECT * FROM media WHERE id = ?').get(id);
-  },
+    return db.prepare(`SELECT * FROM ${this.table} WHERE id = ?`).get(id);
+  }
 
-  findByFilename(filename) {
-    return db.prepare('SELECT * FROM media WHERE filename = ?').get(filename);
-  },
-
-  findAll() {
-    return db.prepare('SELECT * FROM media ORDER BY created_at DESC').all();
-  },
+  create(data) {
+    const { filename, original_name, mime_type, size, width, height, url } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (filename, original_name, mime_type, size, width, height, url) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(filename, original_name, mime_type, size, width, height, url);
+    return this.findById(result.lastInsertRowid);
+  }
 
   delete(id) {
-    db.prepare('DELETE FROM media WHERE id = ?').run(id);
-    return { success: true };
+    return db.prepare(`DELETE FROM ${this.table} WHERE id = ?`).run(id);
   }
-};
+}
 
-module.exports = MediaModel;
+module.exports = new MediaModel();

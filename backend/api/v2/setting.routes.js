@@ -1,30 +1,51 @@
+// ============================================
+// Webowo v3.0 – Setting Routes
+// ============================================
+
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireRole } = require('../../middleware/auth');
-const SettingService = require('../../services/setting.service');
+const { body, validationResult } = require('express-validator');
+const settingService = require('../../services/setting.service');
+const { authenticate, requireRole } = require('../../middleware/auth');
 
+const handleValidation = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
+  next();
+};
+
+// GET /api/v2/settings/public
 router.get('/public', async (req, res, next) => {
   try {
-    const settings = SettingService.getPublic();
-    // Convert to key-value object
-    const result = {};
-    for (const s of settings) result[s.key] = s.value;
-    res.json({ success: true, data: result });
-  } catch (err) { next(err); }
-});
-
-router.get('/', authenticateToken, requireRole('admin'), async (req, res, next) => {
-  try {
-    const settings = SettingService.getAll();
+    const settings = await settingService.getPublic();
     res.json({ success: true, data: settings });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.put('/:key', authenticateToken, requireRole('admin'), async (req, res, next) => {
+// GET /api/v2/settings
+router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
-    const setting = SettingService.update(req.params.key, req.body.value);
-    res.json({ success: true, data: setting });
-  } catch (err) { next(err); }
+    const settings = await settingService.getAll();
+    res.json({ success: true, data: settings });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/v2/settings/:key
+router.put('/:key', authenticate, requireRole('admin'), [
+  body('value').exists().withMessage('Wartość jest wymagana')
+], handleValidation, async (req, res, next) => {
+  try {
+    await settingService.set(req.params.key, req.body.value, req.body.isPublic);
+    res.json({ success: true, message: 'Ustawienie zapisane' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

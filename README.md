@@ -1,128 +1,103 @@
-# Webowo v2.0
+# Webowo v3.0
 
-> Enterprise Landing Page & CMS  
-> **Wersja:** 2.0.0  
-> **Autor:** Patryk Matys – [matys.net.pl](https://matys.net.pl)
+> Profesjonalne strony internetowe, sklepy online i aplikacje webowe.
 
----
+[![Version](https://img.shields.io/badge/version-3.0.0-blue)](VERSION)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-green)](https://nodejs.org)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-## Architektura
+## 🚀 Funkcje
+
+- **Frontend:** SPA z Web Components, Lenis smooth scroll, dark mode, PWA
+- **Backend:** Express.js, SQLite (better-sqlite3), JWT auth, rate limiting
+- **Admin Panel:** Dark theme dashboard, zarządzanie treścią, wiadomości, media
+- **Bezpieczeństwo:** Helmet CSP, bcrypt, JWT z refresh tokens, CSRF, input validation
+- **SEO:** Sitemap.xml, robots.txt, meta tags, Schema.org ready
+- **DevOps:** Docker, Docker Compose, Nginx, Makefile, auto-backup
+
+## 📁 Struktura
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Frontend      │────▶│   API v2        │────▶│   SQLite (WAL)  │
-│  (Vite + WC)    │     │  (Express)      │     │   + Backups     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                       │
-         ▼                       ▼
-    Service Worker          Legacy API
-    (PWA)                   (v1.4 compat)
+Webowo/
+├── backend/          # API Express.js
+│   ├── api/v2/       # REST API routes
+│   ├── config/       # Konfiguracja
+│   ├── db/           # Baza danych SQLite
+│   ├── jobs/         # Cron jobs (backup)
+│   ├── middleware/   # Auth, rate-limit, error-handler
+│   ├── models/       # Modele danych
+│   ├── services/     # Logika biznesowa
+│   └── utils/        # Logger, helpers
+├── frontend/         # Aplikacja SPA
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── admin/      # Panel admina
+│   │   │   ├── components/ # Web Components (UI + Layout)
+│   │   │   ├── core/       # Router, State, i18n, Animations, Renderer
+│   │   │   └── sections/   # Sekcje strony (Hero, About, Services, ...)
+│   │   ├── styles/         # Design tokens, typography, grid, buttons
+│   │   └── assets/         # i18n pliki
+│   └── public/       # SW, manifest, ikony
+├── docker-compose.yml
+├── Makefile
+└── install.sh
 ```
 
-## Stack
+## 🛠️ Instalacja
 
-| Warstwa | Technologie |
-|---------|-------------|
-| **Frontend** | Vanilla JS ES2024, Web Components, Vite, Lenis, WAAPI |
-| **Backend** | Node.js 22, Express 5, better-sqlite3, JWT, Zod, Pino, Sharp |
-| **DevOps** | Docker, Docker Compose, GitHub Actions |
-| **Testy** | Jest, Supertest, Playwright |
+### Wymagania
+- Node.js 18+
+- npm 9+
+- Docker (opcjonalnie)
 
-## Funkcje
-
-- ✅ Reactive Store (Proxy) + Hash Router + Event Bus
-- ✅ i18n (PL/EN) z lazy-load i fallbackiem
-- ✅ API v2 RESTful (Auth, Content, Media, Contact, Settings, Backups)
-- ✅ JWT Access (15m) + Refresh (7d, httpOnly Secure SameSite=Strict cookie)
-- ✅ Web Components (Button, Card, Input, Modal, Toast, Skeleton, Tooltip, Nav, Footer)
-- ✅ Admin Panel SPA (dashboard, content, media, contacts, settings, backups)
-- ✅ PWA (Service Worker, Manifest, offline fallback)
-- ✅ Dynamiczne meta tagi (SEO) – pobierane z API
-- ✅ Sitemap.xml + robots.txt
-- ✅ Auto-backup (cron 3 AM, retencja 30 dni)
-- ✅ Docker + Compose (health checks, persistent volumes)
-- ✅ Legacy API v1.4 (kompatybilność wsteczna)
-- ✅ Tiered rate limiting (global/auth/contact/upload)
-- ✅ Upload obrazków + Sharp (WebP warianty: thumb/medium/large)
-- ✅ Zod validation + Helmet + CORS + structured logging (Pino)
-
-## Szybki start (Docker)
+### Szybki start
 
 ```bash
-# 1. Czysta instalacja
+# 1. Klonuj repozytorium
 git clone https://github.com/gamerpolska123-collab/Webowo.git
 cd Webowo
 
-# 2. Konfiguracja
-cp .env.example .env
-# EDYTUJ .env – ustaw JWT_SECRET, JWT_REFRESH_SECRET, ADMIN_PASSWORD
-
-# 3. Uruchomienie
+# 2. Zainstaluj zależności
+make install
+# lub
 ./install.sh
-# lub: docker compose up --build -d
 
-# 4. Dostęp
-# Strona:  http://localhost:7777
-# Admin:   http://localhost:7777/admin
-# API:     http://localhost:6666/api/v2
-# Health:  http://localhost:6666/health
+# 3. Skonfiguruj środowisko
+cp .env.example .env
+# Edytuj .env – zmień JWT_SECRET, hasła admina
+
+# 4. Uruchom
+make dev
+# Backend: http://localhost:3000
+# Frontend: http://localhost:7777
 ```
 
-## Struktura projektu
+### Docker
 
-```
-WebDev/
-├── backend/              # Express API v2 + Legacy
-│   ├── api/v2/           # REST routers
-│   ├── config/           # Config + env validation
-│   ├── db/               # SQLite, migrations, seeds
-│   ├── jobs/             # Cron jobs (backup)
-│   ├── middleware/       # Auth, rate-limit, upload, validate, error-handler
-│   ├── models/           # Repository pattern (better-sqlite3)
-│   ├── routes/legacy/    # v1.4 compatibility
-│   ├── services/         # Business logic
-│   ├── tests/            # Jest + Supertest
-│   └── utils/            # Logger, helpers
-├── frontend/           # Vite multi-page
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── admin/      # Admin SPA
-│   │   │   ├── components/ # Web Components (ui + layout)
-│   │   │   ├── core/       # Renderer, Router, State, i18n, Events, Animations
-│   │   │   ├── sections/   # Landing page sections (co-location: .js + .css)
-│   │   │   └── shared/     # Utils, validators, constants
-│   │   ├── assets/i18n/    # pl.json, en.json
-│   │   └── styles/         # Global CSS (tokens, base, components, layout)
-│   ├── public/           # Static assets (PWA, favicon, robots)
-│   ├── index.html        # Landing page entry
-│   └── admin.html        # Admin panel entry
-├── docs/               # Dokumentacja techniczna
-├── design/             # Design tokens, specyfikacje
-├── docker-compose.yml
-├── install.sh          # Czysta instalacja jednym poleceniem
-├── cleanup.sh          # Cleanup node_modules, dist, volumes
-└── .env.example        # Wzorzec konfiguracji
+```bash
+# Produkcja
+docker-compose up -d
+
+# Logi
+docker-compose logs -f
+
+# Backup ręczny
+docker-compose exec backend npm run backup
 ```
 
-## Dokumentacja
+## 🔑 Dostęp do admina
 
-| Plik | Opis |
-|------|------|
-| [INSTALL.md](docs/INSTALL.md) | Szczegółowa instrukcja instalacji |
-| [API.md](docs/API.md) | Dokumentacja API v2 + Legacy |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architektura, ADRs, flow danych |
-| [SECURITY.md](docs/SECURITY.md) | Polityka bezpieczeństwa, checklista |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deployment, CI/CD, backup/restore |
-| [TESTING.md](docs/TESTING.md) | Strategia testowania |
-| [CONTRIBUTING.md](docs/CONTRIBUTING.md) | Konwencje kodu, Git workflow |
-| [STRUCTURE.md](docs/STRUCTURE.md) | Struktura katalogów, zasady organizacji |
-| [MIGRATION.md](docs/MIGRATION.md) | Migracja z v1.4 do v2.0 |
-| [TODO.md](TODO.md) | Aktualna lista zadań |
+- **URL:** `/admin.html`
+- **Login:** `admin` (lub z .env)
+- **Hasło:** `admin123` (lub z .env)
 
-## Wersja
+## 🧪 Testy
 
-`2.0.0` – Etap 5: Backend Modernizacja (stabilne)
+```bash
+cd backend && npm test
+cd frontend && npm test
+```
 
-## Licencja
+## 📄 Licencja
 
 MIT © 2026 Patryk Matys

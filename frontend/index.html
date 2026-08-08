@@ -3,25 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Profesjonalne strony internetowe, sklepy online i aplikacje webowe.">
+  <meta name="description" content="Profesjonalne strony internetowe, sklepy online i aplikacje webowe. Tworzę cyfrowe doświadczenia, które przynoszą rezultaty.">
+  <meta name="keywords" content="strony internetowe, web development, sklepy online, aplikacje webowe, SEO, frontend, backend, React, Node.js">
+  <meta name="author" content="Patryk Matys">
   <meta name="theme-color" content="#005ce6">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Matys WebDev | Tworzenie Stron Internetowych">
+  <meta property="og:description" content="Profesjonalne strony internetowe, sklepy online i aplikacje webowe.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://matys.net.pl">
+  <meta property="og:image" content="/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Matys WebDev | Tworzenie Stron Internetowych">
+  <meta name="twitter:description" content="Profesjonalne strony internetowe, sklepy online i aplikacje webowe.">
+  <meta name="twitter:image" content="/og-image.png">
+
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+  <!-- Preload critical fonts -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"></noscript>
+
   <title>Matys WebDev | Tworzenie Stron Internetowych</title>
+
+  <style>
+    /* Critical CSS inline */
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: #ffffff;
+      color: #0f172a;
+    }
+    noscript { display: block; }
+    noscript h1 { font-size: 2rem; margin-bottom: 1rem; }
+    noscript p { color: #64748b; font-size: 1.125rem; }
+    #sections-container { min-height: 100vh; }
+  </style>
 </head>
 <body>
   <noscript>
-    <style>
-      body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 4rem; background: #f8fafc; color: #0f172a; }
-      h1 { font-size: 2rem; margin-bottom: 1rem; }
-      p { color: #64748b; font-size: 1.125rem; }
-    </style>
-    <h1>⚠️ JavaScript jest wyłączony</h1>
-    <p>Ta strona wymaga JavaScript do działania. Włącz go w ustawieniach przeglądarki, aby zobaczyć pełną zawartość.</p>
+    <div style="text-align:center;padding:4rem;background:#f8fafc;">
+      <h1>⚠️ JavaScript jest wyłączony</h1>
+      <p>Ta strona wymaga JavaScript do działania. Włącz go w ustawieniach przeglądarki, aby zobaczyć pełną zawartość.</p>
+    </div>
   </noscript>
+
+  <a href="#about" class="skip-link">Przejdź do treści</a>
+
   <webowo-nav></webowo-nav>
   <main id="sections-container"></main>
   <webowo-layout-footer></webowo-layout-footer>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

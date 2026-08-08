@@ -1,33 +1,64 @@
 // ============================================
-// Global Error Handler
+// Webowo v3.0 – Global Error Handler
 // ============================================
 
 const { logger } = require('../utils/logger');
 
 function errorHandler(err, req, res, next) {
-  logger.error(`${err.name}: ${err.message} — ${req.method} ${req.path}`);
+  const isDev = process.env.NODE_ENV === 'development';
 
-  // Zod validation error
-  if (err.name === 'ZodError') {
+  // Log error
+  logger.error({
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+    requestId: req.id,
+    statusCode: err.statusCode || err.status || 500
+  });
+
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
-      error: 'Validation failed',
-      details: err.errors
+      error: 'Błąd walidacji',
+      details: err.errors || err.message,
+      requestId: req.id
     });
   }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-    return res.status(403).json({ success: false, error: 'Token wygasł lub jest nieprawidłowy.' });
+  if (err.name === 'UnauthorizedError' || err.message?.includes('jwt')) {
+    return res.status(401).json({
+      success: false,
+      error: 'Brak autoryzacji',
+      requestId: req.id
+    });
   }
 
-  const status = err.status || 500;
-  const message = err.message || 'Wewnętrzny błąd serwera';
+  if (err.name === 'SyntaxError' && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nieprawidłowy format JSON',
+      requestId: req.id
+    });
+  }
 
-  res.status(status).json({
+  if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    return res.status(409).json({
+      success: false,
+      error: 'Rekord już istnieje',
+      requestId: req.id
+    });
+  }
+
+  // Default 500
+  const statusCode = err.statusCode || err.status || 500;
+  res.status(statusCode).json({
     success: false,
-    error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    error: isDev ? err.message : 'Wystąpił błąd serwera',
+    ...(isDev && { stack: err.stack }),
+    requestId: req.id
   });
 }
 

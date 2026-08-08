@@ -1,7 +1,9 @@
-// Admin Panel Entry Point
-import './app/admin/app.js';
-import { initAdminRouter } from './app/admin/router.js';
+// ============================================
+// Webowo v3.0 – Admin Entry Point
+// ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
-  initAdminRouter();
-});
+import './admin.css';
+import { AdminApp } from './app.js';
+
+const app = new AdminApp();
+app.init();

@@ -1,11 +1,5 @@
-// @ts-check
 // ============================================
-// Database Wrapper (legacy compat)
+// Webowo v3.0 – Database Singleton
 // ============================================
 
-const { getDb } = require('./connection');
-
-// Lazy singleton
-const db = getDb();
-
-module.exports = db;
+module.exports = require('./connection');

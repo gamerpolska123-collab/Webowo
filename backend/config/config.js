@@ -1,55 +1,64 @@
 // ============================================
-// Webowo Backend Config v2.0.0
-// Etap 5 – Backend Modernizacja (Docker-ready)
+// Webowo v3.0 – Backend Config
 // ============================================
 
 require('dotenv').config();
 const path = require('path');
 const pkg = require('../package.json');
 
-// Use /app/data in Docker, fallback to local ./data
-const DATA_DIR = process.env.UPLOAD_DIR ? path.dirname(process.env.UPLOAD_DIR) : path.resolve(__dirname, '..', 'data');
+const DATA_DIR = process.env.UPLOAD_DIR
+  ? path.dirname(process.env.UPLOAD_DIR)
+  : path.resolve(__dirname, '..', 'data');
 
-// Parse CORS origins (comma-separated for multiple)
 function parseCorsOrigins(raw) {
   if (!raw) return ['http://localhost:7777'];
   return raw.split(',').map(o => o.trim()).filter(Boolean);
 }
 
+function parseIntEnv(key, fallback) {
+  const val = parseInt(process.env[key], 10);
+  return Number.isNaN(val) ? fallback : val;
+}
+
 module.exports = {
   appVersion: pkg.version,
-  port: parseInt(process.env.PORT, 10) || 3000,
+  port: parseIntEnv('PORT', 3000),
   nodeEnv: process.env.NODE_ENV || 'development',
+  trustProxy: process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production',
 
   // Database
   db: {
     path: process.env.DB_PATH || path.join(DATA_DIR, 'db', 'webowo.sqlite'),
-    busyTimeout: 5000,
+    busyTimeout: parseIntEnv('DB_BUSY_TIMEOUT', 5000),
     pragma: [
       'PRAGMA journal_mode = WAL',
       'PRAGMA foreign_keys = ON',
       'PRAGMA synchronous = NORMAL',
       'PRAGMA temp_store = MEMORY',
-      'PRAGMA mmap_size = 30000000000'
+      'PRAGMA mmap_size = 30000000000',
+      'PRAGMA cache_size = -64000',
+      'PRAGMA optimize'
     ]
   },
 
   // Rate limiting
-  rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
-  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
+  rateLimitWindowMs: parseIntEnv('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000),
+  rateLimitMax: parseIntEnv('RATE_LIMIT_MAX', 100),
 
-  // CORS – comma-separated list of allowed origins
+  // CORS
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),
 
   // JWT
   jwt: {
-    secret: process.env.JWT_SECRET || 'change-me-in-production-please-webowo-v2',
+    secret: process.env.JWT_SECRET || 'change-me-in-production-please-webowo-v3',
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh-change-me-in-production-webowo-v2'
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh-change-me-in-production-webowo-v3',
+    issuer: process.env.JWT_ISSUER || 'webowo-backend',
+    audience: process.env.JWT_AUDIENCE || 'webowo-frontend'
   },
 
-  // Admin default credentials
+  // Admin
   admin: {
     username: process.env.ADMIN_USERNAME || 'admin',
     password: process.env.ADMIN_PASSWORD || 'admin123',
@@ -61,23 +70,31 @@ module.exports = {
     enabled: process.env.EMAIL_ENABLED === 'true',
     smtp: {
       host: process.env.SMTP_HOST || '',
-      port: parseInt(process.env.SMTP_PORT, 10) || 587,
+      port: parseIntEnv('SMTP_PORT', 587),
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER || '',
         pass: process.env.SMTP_PASS || ''
-      }
+      },
+      pool: process.env.SMTP_POOL === 'true'
     },
     from: process.env.EMAIL_FROM || 'kontakt@webowo.pl',
     to: process.env.EMAIL_TO || 'biuro@webowo.pl',
-    subjectPrefix: process.env.EMAIL_SUBJECT_PREFIX || '[Webowo] Nowe zapytanie'
+    subjectPrefix: process.env.EMAIL_SUBJECT_PREFIX || '[Webowo]'
   },
 
   // Uploads
   uploads: {
     dir: process.env.UPLOAD_DIR || path.join(DATA_DIR, 'uploads'),
-    maxSize: parseInt(process.env.UPLOAD_MAX_SIZE, 10) || 5 * 1024 * 1024,
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
+    maxSize: parseIntEnv('UPLOAD_MAX_SIZE', 5 * 1024 * 1024),
+    allowedTypes: [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/avif',
+      'image/svg+xml',
+      'image/gif'
+    ],
     publicUrl: process.env.UPLOAD_PUBLIC_URL || '/uploads',
     variants: {
       thumbnail: { width: 300, height: 300, fit: 'cover' },
@@ -86,32 +103,32 @@ module.exports = {
     }
   },
 
-  // CMS / Content
+  // CMS / Backup
   cms: {
-    backupDir: process.env.CMS_BACKUP_DIR || path.join(DATA_DIR, 'backups'),
-    maxBackups: parseInt(process.env.CMS_MAX_BACKUPS, 10) || 20,
-    revisionsPerPage: 50
+    backupDir: process.env.BACKUP_DIR || path.join(DATA_DIR, 'backups'),
+    backupRetentionDays: parseIntEnv('BACKUP_RETENTION_DAYS', 30),
+    backupCron: process.env.BACKUP_CRON || '0 2 * * *',
+    maxRevisions: parseIntEnv('MAX_REVISIONS', 50)
   },
 
-  // Backup cron
-  backup: {
-    enabled: process.env.BACKUP_ENABLED !== 'false',
-    cron: process.env.BACKUP_CRON || '0 3 * * *',
-    retentionDays: parseInt(process.env.BACKUP_RETENTION_DAYS, 10) || 30
-  },
-
-  // GDPR / Logging
+  // GDPR
   gdpr: {
-    logRetentionDays: parseInt(process.env.GDPR_LOG_RETENTION_DAYS, 10) || 365,
-    logDir: process.env.GDPR_LOG_DIR || path.join(DATA_DIR, 'logs')
+    logDir: process.env.GDPR_LOG_DIR || path.join(DATA_DIR, 'gdpr'),
+    dataRetentionDays: parseIntEnv('GDPR_RETENTION_DAYS', 365)
+  },
+
+  // Logging
+  log: {
+    level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+    dir: process.env.LOG_DIR || path.join(DATA_DIR, 'logs'),
+    maxFiles: parseIntEnv('LOG_MAX_FILES', 30),
+    maxSize: process.env.LOG_MAX_SIZE || '20m'
   },
 
   // Security
   security: {
-    bcryptRounds: 12,
-    csrfCookieName: 'webowo_csrf',
-    refreshCookieName: 'webowo_refresh',
-    cookieSecure: process.env.NODE_ENV === 'production',
-    cookieSameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+    bcryptRounds: parseIntEnv('BCRYPT_ROUNDS', 12),
+    sessionSecret: process.env.SESSION_SECRET || 'session-secret-change-me',
+    csrfEnabled: process.env.CSRF_ENABLED !== 'false'
   }
 };
