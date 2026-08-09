@@ -68,7 +68,7 @@ cp .env.example .env
 
 # 4. Uruchom
 make dev
-# Backend: http://localhost:3000
+# Backend: http://localhost:6666
 # Frontend: http://localhost:7777
 ```
 

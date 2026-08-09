@@ -41,7 +41,7 @@ router.get('/pages', async (req, res, next) => {
 
 // POST /api/v2/content/pages (admin only)
 router.post('/pages', authenticate, requireRole('admin', 'editor'), [
-  body('slug').trim().notEmpty().isSlug().withMessage('Slug jest wymagany'),
+  body('slug').trim().notEmpty().matches(/^[a-z0-9-]+$/).withMessage('Slug może zawierać tylko małe litery, cyfry i myślniki'),
   body('title').trim().notEmpty(),
   body('sections').optional().isArray()
 ], handleValidation, async (req, res, next) => {

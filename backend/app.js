@@ -14,7 +14,7 @@ const path = require('path');
 const config = require('./config/config');
 const { validateEnv } = require('./config/env');
 const { logger } = require('./utils/logger');
-const { globalLimiter, apiLimiter, authLimiter } = require('./middleware/rate-limit');
+const { globalLimiter, apiLimiter } = require('./middleware/rate-limit');
 const errorHandler = require('./middleware/error-handler');
 
 // Validate environment on startup

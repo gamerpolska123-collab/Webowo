@@ -14,20 +14,13 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 500,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
   },
   server: {
     port: 7777,
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:6666',
         changeOrigin: true
       }
     }

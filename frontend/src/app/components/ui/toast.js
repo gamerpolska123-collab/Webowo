@@ -173,7 +173,7 @@ class WebowoToast extends HTMLElement {
 customElements.define('webowo-toast', WebowoToast);
 
 // Toast manager
-window.showToast = function(message, type = 'info', duration = 5000) {
+function showToast(message, type = 'info', duration = 5000) {
   const container = document.getElementById('toast-container') || (() => {
     const c = document.createElement('div');
     c.id = 'toast-container';
@@ -188,3 +188,6 @@ window.showToast = function(message, type = 'info', duration = 5000) {
   toast.setAttribute('duration', duration);
   container.appendChild(toast);
 };
+
+window.showToast = showToast;
+export { showToast };
