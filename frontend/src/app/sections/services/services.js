@@ -1,19 +1,6 @@
 // ============================================
-// Webowo v3.0 – Services Section
+// Webowo v3.1 – Services Section
 // ============================================
-
-import { t } from '../../core/i18n.js';
-
-const ICONS = {
-  globe: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
-  'shopping-cart': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`,
-  zap: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
-  'trending-up': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
-  code: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
-  smartphone: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>`,
-  shield: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>`,
-  palette: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.01 17.461 2 12 2z"/></svg>`
-};
 
 class WebowoSectionServices extends HTMLElement {
   constructor() {
@@ -27,160 +14,104 @@ class WebowoSectionServices extends HTMLElement {
 
   render() {
     const data = this.data || {};
-    const title = data.title || t('services_title') || 'Usługi';
+    const title = data.title || 'Usługi';
     const subtitle = data.subtitle || 'Kompleksowe rozwiązania dla Twojego biznesu';
     const items = data.items || [
-      { title: 'Strony WWW', desc: 'Nowoczesne strony wizytówki i landing page zoptymalizowane pod konwersję', icon: 'globe' },
-      { title: 'Sklepy Online', desc: 'E-commerce z płatnościami online, zarządzaniem produktami i analizą sprzedaży', icon: 'shopping-cart' },
-      { title: 'Aplikacje Webowe', desc: 'Zaawansowane SPA i PWA z real-time updates i offline support', icon: 'zap' },
-      { title: 'Optymalizacja', desc: 'Audyt SEO, performance tuning, dostępność WCAG 2.1 AA', icon: 'trending-up' },
-      { title: 'API & Integracje', desc: 'RESTful API, GraphQL, webhooks i integracje z zewnętrznymi systemami', icon: 'code' },
-      { title: 'PWA & Mobile', desc: 'Progressive Web Apps działające jak natywne aplikacje mobilne', icon: 'smartphone' },
-      { title: 'Bezpieczeństwo', desc: 'Audyt bezpieczeństwa, GDPR compliance, szyfrowanie i monitoring', icon: 'shield' },
-      { title: 'UI/UX Design', desc: 'Projektowanie interfejsów z naciskiem na UX research i accessibility', icon: 'palette' }
+      { title: 'Strony WWW', desc: 'Nowoczesne strony wizytówki i landing page', icon: 'globe' },
+      { title: 'Sklepy Online', desc: 'E-commerce z płatnościami online', icon: 'shopping-cart' },
+      { title: 'Aplikacje Webowe', desc: 'Zaawansowane SPA i PWA', icon: 'zap' },
+      { title: 'Optymalizacja', desc: 'Audyt SEO, performance tuning', icon: 'trending-up' }
     ];
+
+    const icons = {
+      globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      'shopping-cart': '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+      zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+      'trending-up': '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>'
+    };
 
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; }
         .services {
-          padding: var(--space-24) var(--container-padding);
-          background: var(--color-surface);
-          position: relative;
+          padding: 6rem 0;
+          background: #f8fafc;
         }
-        .services-inner {
-          max-width: var(--container-max);
+        .container {
+          max-width: 1280px;
           margin: 0 auto;
+          padding: 0 clamp(1rem, 5vw, 3rem);
         }
-        .services-header {
+        .header {
           text-align: center;
-          max-width: 640px;
-          margin: 0 auto var(--space-12);
+          margin-bottom: 4rem;
         }
-        .services-label {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: var(--color-primary-500);
-          font-size: var(--text-sm);
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: var(--space-4);
-        }
-        .services-label::before {
-          content: '';
-          width: 24px;
-          height: 2px;
-          background: var(--color-primary-500);
-          border-radius: var(--radius-full);
-        }
-        .services-title {
+        h2 {
           font-size: clamp(2rem, 4vw, 3rem);
-          font-weight: 900;
-          line-height: 1.1;
-          margin: 0 0 var(--space-4);
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 1rem;
         }
-        .services-subtitle {
-          font-size: var(--text-lg);
-          color: var(--color-muted);
-          line-height: 1.7;
+        .subtitle {
+          font-size: 1.125rem;
+          color: #64748b;
         }
-        .services-grid {
+        .grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: var(--space-6);
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 1.5rem;
         }
-        .service-card {
-          background: var(--color-bg);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-xl);
-          padding: var(--space-8) var(--space-6);
-          transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-          position: relative;
-          overflow: hidden;
+        .card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 1rem;
+          padding: 2rem;
+          transition: all 250ms ease;
+          cursor: pointer;
         }
-        .service-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-          background: var(--gradient-primary);
-          transform: scaleX(0);
-          transform-origin: left;
-          transition: transform var(--transition-slow);
+        .card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+          border-color: #005ce6;
         }
-        .service-card:hover {
-          transform: translateY(-6px);
-          box-shadow: var(--shadow-xl);
-          border-color: var(--color-primary-200);
-        }
-        .service-card:hover::before {
-          transform: scaleX(1);
-        }
-        .service-icon {
-          width: 56px;
-          height: 56px;
-          border-radius: var(--radius-xl);
-          background: linear-gradient(135deg, var(--color-primary-50), var(--color-accent-50));
-          color: var(--color-primary-500);
+        .icon {
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #005ce6 0%, #0047b3 100%);
+          border-radius: 0.75rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: var(--space-5);
-          transition: transform var(--transition-bounce);
+          margin-bottom: 1.25rem;
+          color: white;
         }
-        .service-card:hover .service-icon {
-          transform: scale(1.1) rotate(-5deg);
-        }
-        .service-title {
-          font-size: var(--text-xl);
+        .icon svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        h3 {
+          font-size: 1.25rem;
           font-weight: 700;
-          margin: 0 0 var(--space-2);
-          color: var(--color-text);
+          color: #0f172a;
+          margin-bottom: 0.5rem;
         }
-        .service-desc {
-          font-size: var(--text-base);
-          color: var(--color-muted);
-          line-height: 1.7;
-          margin: 0;
-        }
-        .service-link {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-1);
-          margin-top: var(--space-4);
-          font-size: var(--text-sm);
-          font-weight: 600;
-          color: var(--color-primary-500);
-          text-decoration: none;
-          transition: gap var(--transition-fast);
-        }
-        .service-link:hover {
-          gap: var(--space-2);
+        p {
+          color: #64748b;
+          line-height: 1.6;
+          font-size: 0.9375rem;
         }
       </style>
-      <section class="services" id="services">
-        <div class="services-inner">
-          <div class="services-header">
-            <div class="services-label">Usługi</div>
-            <h2 class="services-title">${title}</h2>
-            <p class="services-subtitle">${subtitle}</p>
+      <section class="services" id="services" data-section="services" data-animate>
+        <div class="container">
+          <div class="header">
+            <h2>${title}</h2>
+            <p class="subtitle">${subtitle}</p>
           </div>
-          <div class="services-grid">
+          <div class="grid">
             ${items.map(item => `
-              <div class="service-card" data-animate data-animate-delay="${Math.floor(Math.random() * 5) + 1}">
-                <div class="service-icon">
-                  ${ICONS[item.icon] || ICONS.globe}
+              <div class="card">
+                <div class="icon">
+                  <svg viewBox="0 0 24 24">${icons[item.icon] || icons.globe}</svg>
                 </div>
-                <h3 class="service-title">${item.title}</h3>
-                <p class="service-desc">${item.desc}</p>
-                <a href="#contact" class="service-link" data-track="services_${item.title.toLowerCase().replace(/\s+/g, '_')}">
-                  Dowiedz się więcej
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </a>
+                <h3>${item.title}</h3>
+                <p>${item.desc}</p>
               </div>
             `).join('')}
           </div>

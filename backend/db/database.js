@@ -1,7 +1,5 @@
 // ============================================
-// Webowo v3.0 – Database Singleton
+// Webowo v3.1 – Database Instance Export
 // ============================================
 
-const connection = require('./connection');
-
-module.exports = connection;
+module.exports = require('./connection');

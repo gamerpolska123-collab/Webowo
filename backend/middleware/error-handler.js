@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Global Error Handler
+// Webowo v3.1 – Global Error Handler
 // ============================================
 
 const { logger } = require('../utils/logger');
@@ -7,7 +7,6 @@ const { logger } = require('../utils/logger');
 function errorHandler(err, req, res, next) {
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Log error
   logger.error({
     message: err.message,
     stack: err.stack,
@@ -18,7 +17,6 @@ function errorHandler(err, req, res, next) {
     statusCode: err.statusCode || err.status || 500
   });
 
-  // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
@@ -52,7 +50,6 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  // Default 500
   const statusCode = err.statusCode || err.status || 500;
   res.status(statusCode).json({
     success: false,

@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Section Model
+// Webowo v3.1 – Section Model
 // ============================================
 
 const db = require('../db/database');
@@ -27,7 +27,9 @@ class SectionModel {
 
   create(data) {
     const { page_id, type, data: sectionData, order_index = 0, is_active = 1 } = data;
-    const result = db.prepare(`INSERT INTO ${this.table} (page_id, type, data, order_index, is_active) VALUES (?, ?, ?, ?, ?)`).run(page_id, type, JSON.stringify(sectionData), order_index, is_active);
+    // Guard: don't double-stringify if already a string
+    const dataStr = typeof sectionData === 'string' ? sectionData : JSON.stringify(sectionData);
+    const result = db.prepare(`INSERT INTO ${this.table} (page_id, type, data, order_index, is_active) VALUES (?, ?, ?, ?, ?)`).run(page_id, type, dataStr, order_index, is_active);
     return this.findById(result.lastInsertRowid);
   }
 
@@ -38,7 +40,6 @@ class SectionModel {
       if (value !== undefined) {
         fields.push(`${key} = ?`);
         if (key === 'data') {
-          // Avoid double-stringifying if already a JSON string
           values.push(typeof value === 'string' ? value : JSON.stringify(value));
         } else {
           values.push(value);

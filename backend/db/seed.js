@@ -1,6 +1,5 @@
-// @ts-check
 // ============================================
-// Seeder (legacy compat)
+// Seed Runner
 // ============================================
 
 const { seed } = require('./index');

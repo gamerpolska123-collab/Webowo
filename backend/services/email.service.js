@@ -1,6 +1,5 @@
-// @ts-check
 // ============================================
-// Email Service
+// Webowo v3.1 – Email Service
 // ============================================
 
 const nodemailer = require('nodemailer');

@@ -1,7 +1,7 @@
 {
   "name": "webowo-backend",
-  "version": "3.0.1",
-  "description": "Webowo v3.0 Backend API",
+  "version": "3.1.0",
+  "description": "Webowo v3.1 Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -44,12 +44,5 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
-  },
-  "keywords": [
-    "webowo",
-    "cms",
-    "api",
-    "express",
-    "sqlite"
-  ]
+  }
 }

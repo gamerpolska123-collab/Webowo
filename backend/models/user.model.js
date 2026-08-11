@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – User Model
+// Webowo v3.1 – User Model
 // ============================================
 
 const db = require('../db/database');
@@ -11,11 +11,11 @@ class UserModel {
 
   findAll(options = {}) {
     const { limit = 50, offset = 0 } = options;
-    return db.prepare(`SELECT id, username, email, role, is_active, created_at, updated_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+    return db.prepare(`SELECT id, username, email, role, is_active, last_login, created_at, updated_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
   }
 
   findById(id) {
-    return db.prepare(`SELECT id, username, email, role, is_active, created_at, updated_at FROM ${this.table} WHERE id = ?`).get(id);
+    return db.prepare(`SELECT id, username, email, role, is_active, last_login, created_at, updated_at FROM ${this.table} WHERE id = ?`).get(id);
   }
 
   findByUsername(username) {

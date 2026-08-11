@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Database Connection
+// Webowo v3.1 – Database Connection
 // ============================================
 
 const Database = require('better-sqlite3');
@@ -11,7 +11,6 @@ let db = null;
 function getDb() {
   if (!db) {
     db = new Database(config.db.path);
-    // Apply PRAGMAs
     config.db.pragma.forEach(sql => {
       try {
         db.exec(sql);
@@ -19,7 +18,6 @@ function getDb() {
         console.warn(`[DB] PRAGMA failed: ${sql} – ${e.message}`);
       }
     });
-    // Enable WAL mode explicitly
     try {
       db.exec('PRAGMA journal_mode = WAL');
     } catch (e) {
@@ -40,7 +38,6 @@ function closeDb() {
   }
 }
 
-// Initialize immediately for backward compatibility
 const dbInstance = getDb();
 
 module.exports = dbInstance;

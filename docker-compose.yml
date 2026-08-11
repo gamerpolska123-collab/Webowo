@@ -1,61 +1,53 @@
+# ============================================
+# Webowo v3.1 – Docker Compose
+# ============================================
+
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: webowo-backend
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-6666}:3000"
+      - "6666:3000"
+    volumes:
+      - webowo-data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DB_PATH=/app/data/db/webowo.sqlite
       - UPLOAD_DIR=/app/data/uploads
-      - BACKUP_DIR=/app/data/backups
+      - CMS_BACKUP_DIR=/app/data/backups
       - LOG_DIR=/app/data/logs
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@webowo.pl}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:7777}
-      - SITE_URL=${SITE_URL:-https://matys.net.pl}
-      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - EMAIL_FROM=${EMAIL_FROM:-kontakt@webowo.pl}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-    volumes:
-      - webowo-data:/app/data
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://www.matys.net.pl}
+      - SITE_URL=${SITE_URL:-https://www.matys.net.pl}
     networks:
-      - webowo-network
+      - webowo-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: webowo-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-7777}:80"
+      - "7777:80"
     depends_on:
       - backend
     networks:
-      - webowo-network
+      - webowo-net
 
 volumes:
   webowo-data:
     driver: local
 
 networks:
-  webowo-network:
+  webowo-net:
     driver: bridge

@@ -1,9 +1,10 @@
 // ============================================
-// Webowo v3.0 – Admin Entry Point
+// Webowo v3.1 – Admin Entry Point
 // ============================================
 
 import './app/admin/admin.css';
-import { AdminApp } from './app/admin/app.js';
+import { initAdmin } from './app/admin/app.js';
 
-const app = new AdminApp();
-app.init();
+document.addEventListener('DOMContentLoaded', () => {
+  initAdmin();
+});

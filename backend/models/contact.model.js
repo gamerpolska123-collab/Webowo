@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Contact Model
+// Webowo v3.1 – Contact Model
 // ============================================
 
 const db = require('../db/database');
@@ -11,7 +11,7 @@ class ContactModel {
 
   findAll(options = {}) {
     const { limit = 20, offset = 0, status } = options;
-    let sql = `SELECT id, name, email, subject, budget, message, status, created_at FROM ${this.table}`;
+    let sql = `SELECT id, name, email, phone, subject, budget, message, status, ip, user_agent, created_at FROM ${this.table}`;
     const params = [];
     if (status) {
       sql += ' WHERE status = ?';

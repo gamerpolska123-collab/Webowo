@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Media Model
+// Webowo v3.1 – Media Model
 // ============================================
 
 const db = require('../db/database');
@@ -11,7 +11,7 @@ class MediaModel {
 
   findAll(options = {}) {
     const { limit = 20, offset = 0 } = options;
-    return db.prepare(`SELECT id, filename, original_name, mime_type, size, width, height, url, created_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+    return db.prepare(`SELECT id, filename, original_name, mime_type, size, width, height, variants, alt_text, url, created_at FROM ${this.table} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
   }
 
   count() {

@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Setting Model
+// Webowo v3.1 – Setting Model
 // ============================================
 
 const db = require('../db/database');
@@ -21,12 +21,12 @@ class SettingModel {
     return db.prepare(`SELECT * FROM ${this.table} WHERE key = ?`).get(key);
   }
 
-  set(key, value, isPublic = false) {
+  set(key, value, isPublic = false, category = 'general') {
     const existing = this.findByKey(key);
     if (existing) {
-      db.prepare(`UPDATE ${this.table} SET value = ?, is_public = ?, updated_at = datetime('now') WHERE key = ?`).run(value, isPublic ? 1 : 0, key);
+      db.prepare(`UPDATE ${this.table} SET value = ?, is_public = ?, category = ?, updated_at = datetime('now') WHERE key = ?`).run(value, isPublic ? 1 : 0, category, key);
     } else {
-      db.prepare(`INSERT INTO ${this.table} (key, value, is_public) VALUES (?, ?, ?)`).run(key, value, isPublic ? 1 : 0);
+      db.prepare(`INSERT INTO ${this.table} (key, value, is_public, category) VALUES (?, ?, ?, ?)`).run(key, value, isPublic ? 1 : 0, category);
     }
     return this.findByKey(key);
   }

@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Backup Service
+// Webowo v3.1 – Backup Service
 // ============================================
 
 const fs = require('fs');
@@ -14,8 +14,6 @@ class BackupService {
     const backupPath = path.join(config.cms.backupDir, backupName);
 
     fs.copyFileSync(config.db.path, backupPath);
-
-    // Clean old backups
     this._cleanupOldBackups();
 
     logger.info(`Manual backup created: ${backupName}`);
@@ -43,7 +41,6 @@ class BackupService {
       throw Object.assign(new Error('Backup nie istnieje'), { statusCode: 404 });
     }
 
-    // Create safety backup of current db
     const safetyBackup = path.join(config.cms.backupDir, `pre-restore-${Date.now()}.sqlite`);
     fs.copyFileSync(config.db.path, safetyBackup);
 
@@ -74,9 +71,8 @@ class BackupService {
         const stat = fs.statSync(filePath);
         return { filename: f, path: filePath, mtime: stat.mtimeMs };
       })
-      .sort((a, b) => a.mtime - b.mtime); // oldest first
+      .sort((a, b) => a.mtime - b.mtime);
 
-    // Remove by retention
     backups.forEach(b => {
       if (b.mtime < cutoff) {
         fs.unlinkSync(b.path);
@@ -84,7 +80,6 @@ class BackupService {
       }
     });
 
-    // Remove by max count (keep newest)
     const remaining = backups.filter(b => fs.existsSync(b.path));
     while (remaining.length > maxBackups) {
       const oldest = remaining.shift();

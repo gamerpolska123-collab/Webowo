@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Contact Service
+// Webowo v3.1 – Contact Service
 // ============================================
 
 const contactModel = require('../models/contact.model');

@@ -1,28 +1,25 @@
 // ============================================
-// Webowo v3.0 – Service Worker
+// Webowo v3.1 – Service Worker
 // ============================================
 
-const CACHE_NAME = 'webowo-v3';
+const CACHE_NAME = 'webowo-v3.1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/admin.html',
   '/favicon.svg',
-  '/manifest.json',
-  '/robots.txt'
+  '/manifest.json'
 ];
 
-// Install: cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
-    }).catch(() => {})
+    })
   );
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -36,36 +33,34 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: cache-first for static, network-first for API
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
-
-  // Skip external resources (fonts, analytics, etc.) to avoid CSP issues
-  if (url.origin !== self.location.origin) {
+  // Skip non-GET requests and external resources
+  if (request.method !== 'GET' || request.url.startsWith('http') && !request.url.includes(self.location.origin)) {
     return;
   }
 
-  // API calls: network only
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(fetch(request).catch(() => new Response('{}', { status: 503 })));
+  // Skip API calls
+  if (request.url.includes('/api/')) {
     return;
   }
 
-  // Static assets: cache first
   event.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) return cached;
+      if (cached) {
+        return cached;
+      }
       return fetch(request).then((response) => {
-        if (response.ok && request.destination) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
         }
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseClone);
+        });
         return response;
-      }).catch(() => cached);
+      });
     })
   );
 });

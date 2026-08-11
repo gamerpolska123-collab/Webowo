@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Winston Logger
+// Webowo v3.1 – Winston Logger
 // ============================================
 
 const winston = require('winston');
@@ -22,7 +22,6 @@ const logFormat = printf(({ level, message, timestamp, stack, ...metadata }) => 
 
 const transports = [];
 
-// Console transport (always, for Docker compatibility)
 transports.push(new winston.transports.Console({
   format: combine(
     colorize(),
@@ -31,7 +30,6 @@ transports.push(new winston.transports.Console({
   )
 }));
 
-// File transports (all environments)
 transports.push(
   new DailyRotateFile({
     filename: path.join(config.log.dir, 'app-%DATE%.log'),

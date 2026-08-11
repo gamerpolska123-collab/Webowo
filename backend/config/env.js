@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Environment Validation
+// Webowo v3.1 – Environment Validation
 // ============================================
 
 function validateEnv() {

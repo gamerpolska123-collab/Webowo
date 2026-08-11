@@ -1,4 +1,3 @@
-// @ts-check
 // ============================================
 // Database CLI: migrate | seed | reset
 // ============================================
@@ -56,7 +55,6 @@ function seed() {
 
   for (const file of files) {
     let raw = fs.readFileSync(path.join(SEEDS_DIR, file), 'utf8');
-    // Dynamic admin password (TODO #10)
     const hash = bcrypt.hashSync(config.admin.password, config.security.bcryptRounds);
     raw = raw.replace(/\$SEED_ADMIN_HASH\$/g, hash);
     const sql = cleanSql(raw);
@@ -86,7 +84,6 @@ function reset() {
   seed();
 }
 
-// CLI-only execution guard
 if (require.main === module) {
   const cmd = process.argv[2];
   if (cmd === 'migrate') { migrate(); closeDb(); }

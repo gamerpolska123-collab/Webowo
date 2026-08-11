@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Backup Cron Job
+// Webowo v3.1 – Backup Cron Job
 // ============================================
 
 const cron = require('node-cron');
@@ -16,7 +16,6 @@ function createBackup() {
 
     fs.copyFileSync(config.db.path, backupPath);
 
-    // Cleanup old backups
     const retentionDays = config.cms.backupRetentionDays || 30;
     const cutoff = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
 
@@ -38,7 +37,6 @@ function createBackup() {
   }
 }
 
-// Schedule cron job
 if (config.cms.backupCron && config.cms.backupCron !== 'none') {
   cron.schedule(config.cms.backupCron, () => {
     logger.info('Running scheduled backup...');

@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Content Service
+// Webowo v3.1 – Content Service
 // ============================================
 
 const pageModel = require('../models/page.model');
@@ -49,7 +49,6 @@ class ContentService {
       throw Object.assign(new Error('Strona nie istnieje'), { statusCode: 404 });
     }
 
-    // Create revision before update
     revisionModel.create({
       entity_type: 'page',
       entity_id: existing.id,
@@ -63,7 +62,6 @@ class ContentService {
       is_active: data.is_active
     });
 
-    // Update sections if provided
     if (data.sections && Array.isArray(data.sections)) {
       sectionModel.deleteByPageId(page.id);
       data.sections.forEach((section, index) => {
@@ -94,6 +92,45 @@ class ContentService {
 
   async getSections(pageId) {
     return sectionModel.findByPageId(pageId);
+  }
+
+  async updateSection(sectionId, data) {
+    const existing = sectionModel.findById(sectionId);
+    if (!existing) {
+      throw Object.assign(new Error('Sekcja nie istnieje'), { statusCode: 404 });
+    }
+
+    revisionModel.create({
+      entity_type: 'section',
+      entity_id: existing.id,
+      data: existing,
+      created_by: data.updated_by
+    });
+
+    const section = sectionModel.update(sectionId, data);
+    logger.info(`Section updated: ${sectionId}`);
+    return section;
+  }
+
+  async toggleSection(sectionId) {
+    const existing = sectionModel.findById(sectionId);
+    if (!existing) {
+      throw Object.assign(new Error('Sekcja nie istnieje'), { statusCode: 404 });
+    }
+    const newStatus = existing.is_active ? 0 : 1;
+    const section = sectionModel.update(sectionId, { is_active: newStatus });
+    logger.info(`Section toggled: ${sectionId} -> is_active=${newStatus}`);
+    return section;
+  }
+
+  async reorderSections(pageId, sectionIds) {
+    const db = require('../db/database');
+    const stmt = db.prepare(`UPDATE sections SET order_index = ?, updated_at = datetime('now') WHERE id = ?`);
+    sectionIds.forEach((id, index) => {
+      stmt.run(index, id);
+    });
+    logger.info(`Sections reordered for page: ${pageId}`);
+    return { success: true };
   }
 }
 

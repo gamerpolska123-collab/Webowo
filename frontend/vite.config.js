@@ -1,35 +1,36 @@
+// ============================================
+// Webowo v3.1 – Vite Config
+// ============================================
+
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 
 export default defineConfig({
   root: '.',
-  publicDir: 'public',
   build: {
     outDir: 'dist',
+    assetsDir: 'assets',
     sourcemap: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        admin: resolve(__dirname, 'admin.html')
+        main: './index.html',
+        admin: './admin.html'
       }
-    },
-    chunkSizeWarningLimit: 500,
+    }
   },
   server: {
     port: 7777,
-    open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:6666',
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
+      '/uploads': {
+        target: 'http://localhost:3000',
         changeOrigin: true
       }
     }
   },
-  preview: {
-    port: 7777
-  },
   css: {
     devSourcemap: true
-  },
-  envPrefix: 'VITE_'
+  }
 });

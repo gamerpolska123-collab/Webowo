@@ -1,25 +1,21 @@
 // ============================================
-// Custom Event Bus
+// Webowo v3.1 – Event Bus
 // ============================================
 
-const bus = new EventTarget();
+const events = new Map();
 
-function emit(name, detail) {
-  bus.dispatchEvent(new CustomEvent(name, { detail }));
+export function on(event, callback) {
+  if (!events.has(event)) {
+    events.set(event, new Set());
+  }
+  events.get(event).add(callback);
+  return () => off(event, callback);
 }
 
-function on(name, handler) {
-  bus.addEventListener(name, handler);
-  return () => bus.removeEventListener(name, handler);
+export function off(event, callback) {
+  events.get(event)?.delete(callback);
 }
 
-function once(name, handler) {
-  const wrapper = (e) => { handler(e); off(name, wrapper); };
-  bus.addEventListener(name, wrapper);
+export function emit(event, data) {
+  events.get(event)?.forEach(cb => cb(data));
 }
-
-function off(name, handler) {
-  bus.removeEventListener(name, handler);
-}
-
-export { emit, on, once, off };

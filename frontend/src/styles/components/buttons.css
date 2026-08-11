@@ -1,5 +1,5 @@
 /* ============================================
-   Webowo v3.0 – Buttons
+   Webowo v3.1 – Buttons
    ============================================ */
 
 .btn {
@@ -8,131 +8,47 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  border-radius: var(--radius-xl);
   font-weight: 600;
-  line-height: var(--leading-sm);
-  border-radius: var(--radius-lg);
-  border: 2px solid transparent;
+  font-size: var(--text-sm);
   cursor: pointer;
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
+  border: none;
+  transition: all var(--transition-fast);
   white-space: nowrap;
-  text-decoration: none;
-  user-select: none;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Primary */
 .btn-primary {
   background: var(--gradient-primary);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(0, 92, 230, 0.39);
-}
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(0, 92, 230, 0.5);
-  filter: brightness(1.1);
-}
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 92, 230, 0.3);
 }
 
-/* Secondary */
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 92, 230, 0.4);
+}
+
 .btn-secondary {
   background: transparent;
   color: var(--color-text);
-  border-color: var(--color-border);
+  border: 2px solid var(--color-border);
 }
-.btn-secondary:hover:not(:disabled) {
+
+.btn-secondary:hover {
   border-color: var(--color-primary-500);
   color: var(--color-primary-500);
   background: var(--color-primary-50);
 }
-[data-theme="dark"] .btn-secondary:hover:not(:disabled),
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .btn-secondary:hover:not(:disabled) {
-    background: var(--color-primary-900);
-  }
-}
 
-/* Accent */
-.btn-accent {
-  background: var(--gradient-accent);
-  color: white;
-  box-shadow: 0 4px 14px 0 rgba(0, 212, 170, 0.39);
-}
-.btn-accent:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px 0 rgba(0, 212, 170, 0.5);
-  filter: brightness(1.1);
-}
-
-/* Ghost */
 .btn-ghost {
   background: transparent;
   color: var(--color-muted);
 }
-.btn-ghost:hover:not(:disabled) {
+
+.btn-ghost:hover {
   color: var(--color-text);
   background: var(--color-surface);
 }
 
-/* Sizes */
-.btn-sm {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-xs);
-}
-.btn-lg {
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--text-base);
-}
-
-/* Icon button */
-.btn-icon {
-  padding: var(--space-3);
-  border-radius: var(--radius-full);
-}
-
-/* Loading state */
-.btn-loading {
-  pointer-events: none;
-}
-.btn-loading::after {
-  content: '';
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Ripple effect container */
-.btn-ripple {
-  position: relative;
-  overflow: hidden;
-}
-.btn-ripple .ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  transform: scale(0);
-  animation: ripple-effect 0.6s linear;
-  pointer-events: none;
-}
-@keyframes ripple-effect {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
+.btn-sm { padding: var(--space-2) var(--space-4); font-size: var(--text-xs); }
+.btn-lg { padding: var(--space-4) var(--space-8); font-size: var(--text-base); }

@@ -40,22 +40,4 @@ router.post('/publish', (req, res) => {
   res.json({ success: true });
 });
 
-router.get('/backups', (req, res) => {
-  if (!fs.existsSync(BACKUP_DIR)) return res.json([]);
-  const files = fs.readdirSync(BACKUP_DIR).filter(f => f.endsWith('.json'));
-  res.json(files);
-});
-
-router.post('/rollback', (req, res) => {
-  const { fileName } = req.body;
-  const filePath = path.join(BACKUP_DIR, fileName);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Backup not found' });
-  fs.copyFileSync(filePath, CONTENT_FILE);
-  res.json({ success: true });
-});
-
-router.post('/reorder', (req, res) => {
-  res.json({ success: true });
-});
-
 module.exports = router;

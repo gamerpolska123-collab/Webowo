@@ -1,103 +1,70 @@
-# Webowo v3.0
+# Webowo v3.1
 
-> Profesjonalne strony internetowe, sklepy online i aplikacje webowe.
-
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)](VERSION)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-green)](https://nodejs.org)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+Nowoczesny, modułowy CMS do zarządzania stronami internetowymi. Zbudowany z myślą o łatwej rozbudowie i dostosowaniu do różnych projektów.
 
 ## 🚀 Funkcje
 
-- **Frontend:** SPA z Web Components, Lenis smooth scroll, dark mode, PWA
-- **Backend:** Express.js, SQLite (better-sqlite3), JWT auth, rate limiting
-- **Admin Panel:** Dark theme dashboard, zarządzanie treścią, wiadomości, media
-- **Bezpieczeństwo:** Helmet CSP, bcrypt, JWT z refresh tokens, CSRF, input validation
-- **SEO:** Sitemap.xml, robots.txt, meta tags, Schema.org ready
-- **DevOps:** Docker, Docker Compose, Nginx, Makefile, auto-backup
+- **SPA Frontend** – Vanilla JS, Web Components, Vite
+- **REST API** – Express.js, SQLite (better-sqlite3)
+- **Admin Panel** – Zarządzanie sekcjami, wiadomościami, mediami, ustawieniami
+- **Drag & Drop** – Zmiana kolejności sekcji
+- **JWT Auth** – Bezpieczna autentykacja z refresh tokenami
+- **Media Upload** – Sharp do generowania wariantów obrazów
+- **Backup System** – Automatyczne kopie zapasowe z cron
+- **Cookie Consent** – Zgodność z GDPR
+- **PWA Ready** – Service Worker, Manifest
+- **i18n** – Wsparcie dla wielu języków (PL/EN)
+- **Rate Limiting** – Ochrona przed nadużyciami
+- **Dark Theme Admin** – Nowoczesny ciemny interfejs administracyjny
 
 ## 📁 Struktura
 
 ```
 Webowo/
-├── backend/          # API Express.js
-│   ├── api/v2/       # REST API routes
-│   ├── config/       # Konfiguracja
-│   ├── db/           # Baza danych SQLite
-│   ├── jobs/         # Cron jobs (backup)
-│   ├── middleware/   # Auth, rate-limit, error-handler
+├── backend/           # API Node.js + Express
+│   ├── api/v2/       # Endpointy REST
 │   ├── models/       # Modele danych
 │   ├── services/     # Logika biznesowa
-│   └── utils/        # Logger, helpers
-├── frontend/         # Aplikacja SPA
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── admin/      # Panel admina
-│   │   │   ├── components/ # Web Components (UI + Layout)
-│   │   │   ├── core/       # Router, State, i18n, Animations, Renderer
-│   │   │   └── sections/   # Sekcje strony (Hero, About, Services, ...)
-│   │   ├── styles/         # Design tokens, typography, grid, buttons
-│   │   └── assets/         # i18n pliki
-│   └── public/       # SW, manifest, ikony
+│   ├── middleware/    # Auth, rate limit, upload
+│   └── db/           # Schema, migracje, seed
+├── frontend/         # SPA Vanilla JS
+│   ├── src/app/
+│   │   ├── sections/ # Komponenty sekcji
+│   │   ├── components/ # UI + Layout
+│   │   ├── core/     # Router, State, i18n, Animations
+│   │   └── admin/    # Panel administracyjny
+│   └── public/       # SW, manifest, favicon
 ├── docker-compose.yml
-├── Makefile
-└── install.sh
+└── .env
 ```
 
-## 🛠️ Instalacja
-
-### Wymagania
-- Node.js 18+
-- npm 9+
-- Docker (opcjonalnie)
-
-### Szybki start
+## 🐳 Docker
 
 ```bash
-# 1. Klonuj repozytorium
-git clone https://github.com/gamerpolska123-collab/Webowo.git
-cd Webowo
-
-# 2. Zainstaluj zależności
-make install
-# lub
-./install.sh
-
-# 3. Skonfiguruj środowisko
+# 1. Skopiuj i wypełnij .env
 cp .env.example .env
-# Edytuj .env – zmień JWT_SECRET, hasła admina
 
-# 4. Uruchom
-make dev
-# Backend: http://localhost:6666
+# 2. Uruchom
+sudo docker compose up --build -d
+
 # Frontend: http://localhost:7777
+# Admin:     http://localhost:7777/admin.html
+# API:       http://localhost:6666
 ```
 
-### Docker
+## 🔧 Update Script
 
+Użyj dostarczonego `update.sh` do aktualizacji serwera:
 ```bash
-# Produkcja
-docker-compose up -d
-
-# Logi
-docker-compose logs -f
-
-# Backup ręczny
-docker-compose exec backend npm run backup
+chmod +x update.sh
+./update.sh
 ```
 
-## 🔑 Dostęp do admina
+## 🛠️ Technologie
 
-- **URL:** `/admin.html`
-- **Login:** `admin` (lub z .env)
-- **Hasło:** `admin123` (lub z .env)
-
-## 🧪 Testy
-
-```bash
-cd backend && npm test
-cd frontend && npm test
-```
+**Backend:** Node.js, Express, better-sqlite3, JWT, bcryptjs, sharp, multer, winston, node-cron, helmet, cors
+**Frontend:** Vanilla JS, Web Components, Vite, CSS Custom Properties, Intersection Observer
 
 ## 📄 Licencja
 
-MIT © 2026 Patryk Matys
+MIT

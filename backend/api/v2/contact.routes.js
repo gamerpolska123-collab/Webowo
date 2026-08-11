@@ -1,11 +1,12 @@
 // ============================================
-// Webowo v3.0 – Contact Routes
+// Webowo v3.1 – Contact Routes
 // ============================================
 
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const contactService = require('../../services/contact.service');
+const emailService = require('../../services/email.service');
 const { contactLimiter } = require('../../middleware/rate-limit');
 const { authenticate, requireRole } = require('../../middleware/auth');
 
@@ -17,7 +18,6 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
-// POST /api/v2/contact
 router.post('/', contactLimiter, [
   body('name').trim().notEmpty().withMessage('Imię jest wymagane').isLength({ max: 100 }),
   body('email').isEmail().normalizeEmail().withMessage('Podaj prawidłowy e-mail'),
@@ -26,14 +26,18 @@ router.post('/', contactLimiter, [
   body('budget').optional().trim()
 ], handleValidation, async (req, res, next) => {
   try {
-    const result = await contactService.create(req.body);
+    const result = await contactService.create({
+      ...req.body,
+      ip: req.ip,
+      user_agent: req.headers['user-agent']
+    });
+    await emailService.sendContactNotification(req.body);
     res.status(201).json({ success: true, data: result, message: 'Wiadomość wysłana pomyślnie' });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/v2/contact (admin only)
 router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -44,7 +48,6 @@ router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, n
   }
 });
 
-// GET /api/v2/contact/:id
 router.get('/:id', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
     const item = await contactService.getById(req.params.id);
@@ -55,19 +58,17 @@ router.get('/:id', authenticate, requireRole('admin', 'editor'), async (req, res
   }
 });
 
-// PATCH /api/v2/contact/:id/status
 router.patch('/:id/status', authenticate, requireRole('admin', 'editor'), [
-  body('status').isIn(['new', 'read', 'replied', 'archived'])
+  body('status').isIn(['new', 'read', 'replied', 'archived']).withMessage('Nieprawidłowy status')
 ], handleValidation, async (req, res, next) => {
   try {
-    await contactService.updateStatus(req.params.id, req.body.status);
-    res.json({ success: true, message: 'Status zaktualizowany' });
+    const item = await contactService.updateStatus(req.params.id, req.body.status);
+    res.json({ success: true, data: item });
   } catch (err) {
     next(err);
   }
 });
 
-// DELETE /api/v2/contact/:id
 router.delete('/:id', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
     await contactService.delete(req.params.id);

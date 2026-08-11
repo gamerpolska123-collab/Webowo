@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Auth Middleware
+// Webowo v3.1 – Auth Middleware
 // ============================================
 
 const jwt = require('jsonwebtoken');

@@ -1,20 +1,12 @@
 {
   "name": "Matys WebDev",
-  "short_name": "WebDev",
+  "short_name": "Matys",
   "description": "Profesjonalne strony internetowe, sklepy online i aplikacje webowe.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#005ce6",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "lang": "pl",
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

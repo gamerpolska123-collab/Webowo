@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Backup Routes
+// Webowo v3.1 – Backup Routes
 // ============================================
 
 const express = require('express');
@@ -7,18 +7,16 @@ const router = express.Router();
 const backupService = require('../../services/backup.service');
 const { authenticate, requireRole } = require('../../middleware/auth');
 
-// POST /api/v2/backup/manual
-router.post('/manual', authenticate, requireRole('admin'), async (req, res, next) => {
+router.post('/', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
     const result = await backupService.createManual();
-    res.json({ success: true, data: result });
+    res.status(201).json({ success: true, data: result });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/v2/backup/list
-router.get('/list', authenticate, requireRole('admin'), async (req, res, next) => {
+router.get('/', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
     const backups = await backupService.list();
     res.json({ success: true, data: backups });
@@ -27,17 +25,17 @@ router.get('/list', authenticate, requireRole('admin'), async (req, res, next) =
   }
 });
 
-// POST /api/v2/backup/restore/:filename
-router.post('/restore/:filename', authenticate, requireRole('admin'), async (req, res, next) => {
+router.post('/restore', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    await backupService.restore(req.params.filename);
-    res.json({ success: true, message: 'Backup przywrócony' });
+    const { filename } = req.body;
+    if (!filename) return res.status(400).json({ success: false, error: 'Nazwa pliku jest wymagana' });
+    await backupService.restore(filename);
+    res.json({ success: true, message: 'Baza danych przywrócona. Zrestartuj serwer.' });
   } catch (err) {
     next(err);
   }
 });
 
-// DELETE /api/v2/backup/:filename
 router.delete('/:filename', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
     await backupService.delete(req.params.filename);

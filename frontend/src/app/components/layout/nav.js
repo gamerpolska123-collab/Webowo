@@ -1,466 +1,201 @@
 // ============================================
-// Webowo v3.0 – Professional Navigation
-// Sticky, scroll-aware, mobile menu, theme toggle, progress bar
+// Webowo v3.1 – Navigation Component
 // ============================================
-
-import { t } from '../../core/i18n.js';
-import { getState, setState, subscribe } from '../../core/state.js';
-import { scrollTo } from '../../core/animations.js';
 
 class WebowoNav extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this._scrollY = 0;
-    this._isScrolled = false;
-    this._mobileOpen = false;
-    this._unsubscribers = [];
+    this.isScrolled = false;
+    this.isMenuOpen = false;
   }
 
   connectedCallback() {
     this.render();
-    this._setupScrollListener();
-    this._setupKeyboard();
-    this._setupThemeToggle();
-
-    // Subscribe to state changes
-    this._unsubscribers.push(
-      subscribe('locale', () => this._updateActiveLink()),
-      subscribe('route', () => this._updateActiveLink())
-    );
+    this.setupEvents();
   }
 
-  disconnectedCallback() {
-    window.removeEventListener('scroll', this._onScroll);
-    this._unsubscribers.forEach(u => u());
-  }
-
-  _setupScrollListener() {
-    this._onScroll = () => {
-      const y = window.scrollY;
-      const nav = this.shadowRoot.querySelector('.nav');
-      const progress = this.shadowRoot.querySelector('.progress-bar');
-
-      // Sticky state
-      if (y > 50 && !this._isScrolled) {
-        this._isScrolled = true;
-        nav?.classList.add('is-scrolled');
-      } else if (y <= 50 && this._isScrolled) {
-        this._isScrolled = false;
-        nav?.classList.remove('is-scrolled');
-      }
-
-      // Scroll progress
-      if (progress) {
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = docHeight > 0 ? (y / docHeight) * 100 : 0;
-        progress.style.width = `${pct}%`;
-      }
-
-      // Hide/show on scroll direction
-      const direction = y > this._scrollY ? 'down' : 'up';
-      if (y > 200) {
-        if (direction === 'down' && y > this._scrollY + 10) {
-          nav?.classList.add('is-hidden');
-        } else {
-          nav?.classList.remove('is-hidden');
-        }
-      } else {
-        nav?.classList.remove('is-hidden');
-      }
-      this._scrollY = y;
-    };
-    window.addEventListener('scroll', this._onScroll, { passive: true });
-  }
-
-  _setupKeyboard() {
-    this.shadowRoot.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this._mobileOpen) {
-        this._toggleMobile(false);
+  setupEvents() {
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY > 50;
+      if (scrolled !== this.isScrolled) {
+        this.isScrolled = scrolled;
+        this.updateNavStyle();
       }
     });
-  }
 
-  _setupThemeToggle() {
-    const btn = this.shadowRoot.querySelector('.theme-toggle');
-    if (!btn) return;
-
-    btn.addEventListener('click', () => {
-      const current = getState('theme') || 'system';
-      const next = current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light';
-      setState('theme', next);
-      this._updateThemeIcon(next);
+    this.shadowRoot.querySelector('.menu-toggle')?.addEventListener('click', () => {
+      this.isMenuOpen = !this.isMenuOpen;
+      this.updateMenuState();
     });
 
-    subscribe('theme', (theme) => this._updateThemeIcon(theme));
-  }
-
-  _updateThemeIcon(theme) {
-    const btn = this.shadowRoot.querySelector('.theme-toggle');
-    if (!btn) return;
-    const icons = { light: '☀️', dark: '🌙', system: '🖥️' };
-    btn.textContent = icons[theme] || '🖥️';
-    btn.setAttribute('aria-label', `Motyw: ${theme}`);
-  }
-
-  _updateActiveLink() {
-    const route = getState('route') || '/';
     this.shadowRoot.querySelectorAll('.nav-link').forEach(link => {
-      const href = link.getAttribute('href');
-      const isActive = href === route || (route === '/' && href === '#hero');
-      link.classList.toggle('is-active', isActive);
-      link.setAttribute('aria-current', isActive ? 'page' : 'false');
+      link.addEventListener('click', () => {
+        this.isMenuOpen = false;
+        this.updateMenuState();
+      });
     });
   }
 
-  _toggleMobile(force) {
-    this._mobileOpen = force !== undefined ? force : !this._mobileOpen;
-    const overlay = this.shadowRoot.querySelector('.mobile-overlay');
-    const menu = this.shadowRoot.querySelector('.mobile-menu');
-    const btn = this.shadowRoot.querySelector('.mobile-toggle');
-
-    if (this._mobileOpen) {
-      overlay?.classList.add('is-open');
-      menu?.classList.add('is-open');
-      btn?.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden';
+  updateNavStyle() {
+    const nav = this.shadowRoot.querySelector('nav');
+    if (!nav) return;
+    if (this.isScrolled) {
+      nav.style.background = 'rgba(255,255,255,0.85)';
+      nav.style.backdropFilter = 'blur(12px)';
+      nav.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
     } else {
-      overlay?.classList.remove('is-open');
-      menu?.classList.remove('is-open');
-      btn?.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+      nav.style.background = 'transparent';
+      nav.style.backdropFilter = 'none';
+      nav.style.boxShadow = 'none';
+    }
+  }
+
+  updateMenuState() {
+    const menu = this.shadowRoot.querySelector('.mobile-menu');
+    if (menu) {
+      menu.style.display = this.isMenuOpen ? 'flex' : 'none';
+    }
+    const toggle = this.shadowRoot.querySelector('.menu-toggle');
+    if (toggle) {
+      toggle.innerHTML = this.isMenuOpen 
+        ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+        : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
     }
   }
 
   render() {
-    const navItems = [
-      { label: t('nav_about') || 'O mnie', href: '#about' },
-      { label: t('nav_services') || 'Usługi', href: '#services' },
-      { label: t('nav_portfolio') || 'Portfolio', href: '#portfolio' },
-      { label: t('nav_process') || 'Proces', href: '#process' },
-      { label: t('nav_pricing') || 'Cennik', href: '#pricing' },
-      { label: t('nav_faq') || 'FAQ', href: '#faq' },
-      { label: t('nav_contact') || 'Kontakt', href: '#contact' }
-    ];
-
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; position: sticky; top: 0; z-index: var(--z-sticky); }
-
-        .nav {
-          position: relative;
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-bottom: 1px solid transparent;
-          transition: background var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+        :host { display: block; position: sticky; top: 0; z-index: 100; }
+        nav {
+          transition: all 300ms ease;
+          padding: 1rem 0;
         }
-        .nav.is-scrolled {
-          background: rgba(255, 255, 255, 0.95);
-          border-bottom-color: var(--color-border);
-          box-shadow: var(--shadow-sm);
-        }
-        .nav.is-hidden {
-          transform: translateY(-100%);
-        }
-
-        [data-theme="dark"] .nav,
-        @media (prefers-color-scheme: dark) {
-          :root:not([data-theme="light"]) .nav {
-            background: rgba(15, 23, 42, 0.8);
-          }
-          :root:not([data-theme="light"]) .nav.is-scrolled {
-            background: rgba(15, 23, 42, 0.95);
-          }
-        }
-
-        .progress-bar {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          height: 2px;
-          background: var(--gradient-accent);
-          width: 0%;
-          transition: width 0.1s linear;
-          z-index: 1;
-        }
-
-        .nav-inner {
-          max-width: var(--container-max);
+        .container {
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 var(--container-padding);
+          padding: 0 clamp(1rem, 5vw, 3rem);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          height: var(--nav-height);
         }
-
         .brand {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
+          text-decoration: none;
           display: flex;
           align-items: center;
-          gap: var(--space-3);
-          text-decoration: none;
-          font-weight: 800;
-          font-size: var(--text-xl);
-          color: var(--color-text);
-          letter-spacing: -0.02em;
+          gap: 0.5rem;
         }
-        .brand-logo {
-          width: 36px;
-          height: 36px;
-          background: var(--gradient-primary);
-          border-radius: var(--radius-lg);
+        .brand-icon {
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, #005ce6, #0047b3);
+          border-radius: 0.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-weight: 900;
-          font-size: 0.875rem;
+          font-weight: 800;
+          font-size: 1rem;
         }
-
         .nav-links {
           display: flex;
+          gap: 2rem;
           align-items: center;
-          gap: var(--space-1);
-          list-style: none;
-          padding: 0;
-          margin: 0;
         }
-
         .nav-link {
-          display: block;
-          padding: var(--space-2) var(--space-3);
-          color: var(--color-muted);
-          font-size: var(--text-sm);
+          font-size: 0.875rem;
           font-weight: 500;
+          color: #64748b;
           text-decoration: none;
-          border-radius: var(--radius-md);
-          transition: color var(--transition-fast), background var(--transition-fast);
+          transition: color 150ms;
           position: relative;
         }
-        .nav-link:hover {
-          color: var(--color-text);
-          background: var(--color-surface);
-        }
-        .nav-link.is-active {
-          color: var(--color-primary-500);
-          font-weight: 600;
-        }
-        .nav-link.is-active::after {
+        .nav-link:hover { color: #0f172a; }
+        .nav-link::after {
           content: '';
           position: absolute;
-          bottom: 2px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 16px;
+          bottom: -4px;
+          left: 0;
+          width: 0;
           height: 2px;
-          background: var(--color-primary-500);
-          border-radius: var(--radius-full);
+          background: #005ce6;
+          transition: width 250ms ease;
         }
-
-        .nav-actions {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-        }
-
-        .theme-toggle {
-          width: 40px;
-          height: 40px;
-          border-radius: var(--radius-full);
-          border: 1px solid var(--color-border);
-          background: transparent;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.125rem;
-          transition: background var(--transition-fast), border-color var(--transition-fast);
-        }
-        .theme-toggle:hover {
-          background: var(--color-surface);
-          border-color: var(--color-primary-300);
-        }
-
-        .cta-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          padding: var(--space-2) var(--space-4);
-          background: var(--gradient-primary);
+        .nav-link:hover::after { width: 100%; }
+        .nav-cta {
+          background: linear-gradient(135deg, #005ce6, #0047b3);
           color: white;
-          font-size: var(--text-sm);
+          padding: 0.5rem 1.25rem;
+          border-radius: 0.75rem;
+          font-size: 0.875rem;
           font-weight: 600;
-          border-radius: var(--radius-lg);
           text-decoration: none;
-          transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-          box-shadow: 0 4px 12px rgba(0, 92, 230, 0.25);
+          transition: all 150ms;
+          box-shadow: 0 4px 12px rgba(0, 92, 230, 0.3);
         }
-        .cta-btn:hover {
+        .nav-cta:hover {
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(0, 92, 230, 0.35);
+          box-shadow: 0 6px 20px rgba(0, 92, 230, 0.4);
         }
-
-        .mobile-toggle {
+        .menu-toggle {
           display: none;
-          width: 40px;
-          height: 40px;
-          border-radius: var(--radius-lg);
-          border: 1px solid var(--color-border);
-          background: transparent;
+          background: none;
+          border: none;
           cursor: pointer;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-          padding: 0;
+          color: #0f172a;
+          padding: 0.5rem;
         }
-        .mobile-toggle span {
-          display: block;
-          width: 20px;
-          height: 2px;
-          background: var(--color-text);
-          border-radius: var(--radius-full);
-          transition: transform var(--transition-base), opacity var(--transition-base);
-        }
-        .mobile-toggle[aria-expanded="true"] span:nth-child(1) {
-          transform: translateY(7px) rotate(45deg);
-        }
-        .mobile-toggle[aria-expanded="true"] span:nth-child(2) {
-          opacity: 0;
-        }
-        .mobile-toggle[aria-expanded="true"] span:nth-child(3) {
-          transform: translateY(-7px) rotate(-45deg);
-        }
-
-        .mobile-overlay {
-          display: none;
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(4px);
-          z-index: var(--z-modal-backdrop);
-          opacity: 0;
-          transition: opacity var(--transition-base);
-        }
-        .mobile-overlay.is-open {
-          display: block;
-          opacity: 1;
-        }
-
         .mobile-menu {
           display: none;
-          position: fixed;
-          top: 0;
-          right: 0;
-          width: min(320px, 85vw);
-          height: 100vh;
-          background: var(--color-bg);
-          border-left: 1px solid var(--color-border);
-          z-index: var(--z-modal);
-          padding: calc(var(--nav-height) + var(--space-6)) var(--space-6) var(--space-6);
-          transform: translateX(100%);
-          transition: transform var(--transition-slow);
-          overflow-y: auto;
-        }
-        .mobile-menu.is-open {
-          display: block;
-          transform: translateX(0);
-        }
-        .mobile-menu .nav-links {
           flex-direction: column;
-          align-items: flex-start;
-          gap: var(--space-2);
+          gap: 1rem;
+          padding: 1rem;
+          background: white;
+          border-radius: 1rem;
+          margin-top: 0.5rem;
+          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
-        .mobile-menu .nav-link {
-          font-size: var(--text-lg);
-          padding: var(--space-3) 0;
-          width: 100%;
-          border-bottom: 1px solid var(--color-border-subtle);
-          border-radius: 0;
-        }
-        .mobile-menu .nav-link.is-active::after {
-          display: none;
-        }
-        .mobile-menu .nav-link.is-active {
-          color: var(--color-primary-500);
-        }
-        .mobile-menu .nav-actions {
-          margin-top: var(--space-6);
-          flex-direction: column;
-          width: 100%;
-        }
-        .mobile-menu .cta-btn {
-          width: 100%;
-          justify-content: center;
-          padding: var(--space-3);
-        }
-
-        @media (max-width: 1024px) {
-          .desktop-nav { display: none; }
-          .mobile-toggle { display: flex; }
-        }
-        @media (min-width: 1025px) {
-          .mobile-overlay, .mobile-menu { display: none !important; }
+        @media (max-width: 768px) {
+          .nav-links { display: none; }
+          .menu-toggle { display: block; }
         }
       </style>
-
-      <nav class="nav" role="navigation" aria-label="Główna nawigacja">
-        <div class="progress-bar" aria-hidden="true"></div>
-        <div class="nav-inner">
-          <a class="brand" href="#hero" data-track="nav_brand">
-            <span class="brand-logo">M</span>
-            <span>Matys WebDev</span>
+      <nav>
+        <div class="container">
+          <a href="#" class="brand">
+            <div class="brand-icon">M</div>
+            Matys WebDev
           </a>
-
-          <div class="desktop-nav">
-            <ul class="nav-links">
-              ${navItems.map(item => `
-                <li><a class="nav-link" href="${item.href}" data-track="nav_${item.href.replace('#', '')}">${item.label}</a></li>
-              `).join('')}
-            </ul>
+          <div class="nav-links">
+            <a href="#about" class="nav-link">O mnie</a>
+            <a href="#services" class="nav-link">Usługi</a>
+            <a href="#portfolio" class="nav-link">Portfolio</a>
+            <a href="#pricing" class="nav-link">Cennik</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+            <a href="#contact" class="nav-cta">Kontakt</a>
           </div>
-
-          <div class="nav-actions">
-            <button class="theme-toggle" aria-label="Zmień motyw" title="Zmień motyw">🖥️</button>
-            <a class="cta-btn hide-mobile" href="#contact" data-track="nav_cta">${t('nav_cta') || 'Bezpłatna wycena'}</a>
-            <button class="mobile-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
-              <span></span><span></span><span></span>
-            </button>
-          </div>
+          <button class="menu-toggle" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
         </div>
-
-        <div class="mobile-overlay" aria-hidden="true"></div>
-        <div class="mobile-menu" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu mobilne">
-          <ul class="nav-links">
-            ${navItems.map(item => `
-              <li><a class="nav-link" href="${item.href}" data-track="nav_mobile_${item.href.replace('#', '')}">${item.label}</a></li>
-            `).join('')}
-          </ul>
-          <div class="nav-actions">
-            <a class="cta-btn" href="#contact" data-track="nav_mobile_cta">${t('nav_cta') || 'Bezpłatna wycena'}</a>
-          </div>
+        <div class="mobile-menu">
+          <a href="#about" class="nav-link">O mnie</a>
+          <a href="#services" class="nav-link">Usługi</a>
+          <a href="#portfolio" class="nav-link">Portfolio</a>
+          <a href="#pricing" class="nav-link">Cennik</a>
+          <a href="#faq" class="nav-link">FAQ</a>
+          <a href="#contact" class="nav-cta">Kontakt</a>
         </div>
       </nav>
     `;
-
-    // Event bindings
-    this.shadowRoot.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (this._mobileOpen) this._toggleMobile(false);
-      });
-    });
-
-    this.shadowRoot.querySelector('.mobile-toggle')?.addEventListener('click', () => {
-      this._toggleMobile();
-    });
-
-    this.shadowRoot.querySelector('.mobile-overlay')?.addEventListener('click', () => {
-      this._toggleMobile(false);
-    });
-
-    this._updateActiveLink();
-    this._updateThemeIcon(getState('theme') || 'system');
   }
 }
 

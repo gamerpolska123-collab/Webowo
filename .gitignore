@@ -1,40 +1,33 @@
-# ============================================
-# Webowo v2.0 – Git Ignore
-# ============================================
-
-# ─── Backend ───
+# Dependencies
 backend/node_modules/
-backend/dist/
-backend/.env
-backend/data/
-backend/uploads/
-backend/logs/
-backend/*.log
-backend/coverage/
-
-# ─── Frontend ───
 frontend/node_modules/
 frontend/dist/
-frontend/.env
-frontend/.vite/
-frontend/coverage/
 
-# ─── Root / Global ───
-node_modules/
+# Environment
 .env
-.env.local
-*.log
-.DS_Store
-Thumbs.db
+backend/.env
+frontend/.env
 
-# ─── IDE / OS ───
+# Data
+backend/data/
+backend/uploads/
+backend/backups/
+backend/logs/
+backend/coverage/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# ─── Test / Build ───
-coverage/
-*.sqlite
-*.sqlite-journal
-*.sql-journal
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tests
+backend/coverage/

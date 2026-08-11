@@ -1,18 +1,16 @@
 # ============================================
-# Webowo v3.0 – Backend Dockerfile
-# Using Debian-based image for better native module compatibility
-# (better-sqlite3 and sharp have issues with Alpine/musl libc)
+# Webowo v3.1 – Backend Dockerfile
 # ============================================
 
-FROM node:20-slim
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install build dependencies for native modules (better-sqlite3, sharp)
-RUN apt-get update && apt-get install -y     python3     make     g++     libvips-dev     && rm -rf /var/lib/apt/lists/*
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm ci --only=production
 
 COPY . .
 

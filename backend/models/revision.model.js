@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Revision Model
+// Webowo v3.1 – Revision Model
 // ============================================
 
 const db = require('../db/database');

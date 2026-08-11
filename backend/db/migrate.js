@@ -1,6 +1,5 @@
-// @ts-check
 // ============================================
-// Migration Runner (legacy compat)
+// Migration Runner
 // ============================================
 
 const { migrate } = require('./index');

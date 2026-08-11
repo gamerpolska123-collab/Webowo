@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Server Entry Point
+// Webowo v3.1 – Server Entry Point
 // ============================================
 
 const app = require('./app');
@@ -27,16 +27,17 @@ dirs.forEach(d => {
 // Clean SQL helper
 function cleanSql(sql) {
   return sql
-    .split('\n')
+    .split('
+')
     .map(l => l.trim())
     .filter(l => l.length > 0 && !l.startsWith('--'))
-    .join('\n');
+    .join('
+');
 }
 
 // Auto-run migrations
 const db = require('./db/database');
 
-// ─── Schema compatibility for existing databases ───
 function ensureSchema() {
   const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(t => t.name);
 

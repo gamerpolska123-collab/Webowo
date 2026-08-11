@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Setting Routes
+// Webowo v3.1 – Setting Routes
 // ============================================
 
 const express = require('express');
@@ -16,7 +16,6 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
-// GET /api/v2/settings/public
 router.get('/public', async (req, res, next) => {
   try {
     const settings = await settingService.getPublic();
@@ -26,7 +25,6 @@ router.get('/public', async (req, res, next) => {
   }
 });
 
-// GET /api/v2/settings
 router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
   try {
     const settings = await settingService.getAll();
@@ -36,13 +34,24 @@ router.get('/', authenticate, requireRole('admin', 'editor'), async (req, res, n
   }
 });
 
-// PUT /api/v2/settings/:key
 router.put('/:key', authenticate, requireRole('admin'), [
-  body('value').exists().withMessage('Wartość jest wymagana')
+  body('value').exists().withMessage('Wartość jest wymagana'),
+  body('isPublic').optional().isBoolean(),
+  body('category').optional().isIn(['general', 'theme', 'seo', 'email', 'social'])
 ], handleValidation, async (req, res, next) => {
   try {
-    await settingService.set(req.params.key, req.body.value, req.body.isPublic);
-    res.json({ success: true, message: 'Ustawienie zapisane' });
+    const setting = await settingService.set(req.params.key, req.body.value, req.body.isPublic, req.body.category);
+    res.json({ success: true, data: setting });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/:key', authenticate, requireRole('admin', 'editor'), async (req, res, next) => {
+  try {
+    const setting = await settingService.getByKey(req.params.key);
+    if (!setting) return res.status(404).json({ success: false, error: 'Nie znaleziono' });
+    res.json({ success: true, data: setting });
   } catch (err) {
     next(err);
   }

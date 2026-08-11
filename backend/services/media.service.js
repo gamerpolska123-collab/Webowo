@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Media Service
+// Webowo v3.1 – Media Service
 // ============================================
 
 const fs = require('fs');
@@ -48,6 +48,8 @@ class MediaService {
       size,
       width,
       height,
+      variants: JSON.stringify(variants),
+      alt_text: '',
       url
     });
 
@@ -67,13 +69,11 @@ class MediaService {
       throw Object.assign(new Error('Plik nie istnieje'), { statusCode: 404 });
     }
 
-    // Delete physical files
     const filePath = path.join(config.uploads.dir, media.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
 
-    // Delete variants
     const ext = path.extname(media.filename);
     const baseName = path.basename(media.filename, ext);
     for (const variantName of Object.keys(config.uploads.variants)) {

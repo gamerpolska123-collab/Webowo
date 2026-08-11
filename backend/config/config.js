@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Backend Config
+// Webowo v3.1 – Backend Config
 // ============================================
 
 require('dotenv').config();
@@ -26,7 +26,6 @@ module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
   trustProxy: process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production',
 
-  // Database
   db: {
     path: process.env.DB_PATH || path.join(DATA_DIR, 'db', 'webowo.sqlite'),
     busyTimeout: parseIntEnv('DB_BUSY_TIMEOUT', 5000),
@@ -41,14 +40,11 @@ module.exports = {
     ]
   },
 
-  // Rate limiting
   rateLimitWindowMs: parseIntEnv('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000),
   rateLimitMax: parseIntEnv('RATE_LIMIT_MAX', 100),
 
-  // CORS
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGIN),
 
-  // JWT
   jwt: {
     secret: process.env.JWT_SECRET || 'change-me-in-production-please-webowo-v3',
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
@@ -58,14 +54,12 @@ module.exports = {
     audience: process.env.JWT_AUDIENCE || 'webowo-frontend'
   },
 
-  // Admin
   admin: {
     username: process.env.ADMIN_USERNAME || 'admin',
     password: process.env.ADMIN_PASSWORD || 'admin123',
     email: process.env.ADMIN_EMAIL || 'admin@webowo.pl'
   },
 
-  // Email (SMTP)
   email: {
     enabled: process.env.EMAIL_ENABLED === 'true',
     smtp: {
@@ -83,7 +77,6 @@ module.exports = {
     subjectPrefix: process.env.EMAIL_SUBJECT_PREFIX || '[Webowo]'
   },
 
-  // Uploads
   uploads: {
     dir: process.env.UPLOAD_DIR || path.join(DATA_DIR, 'uploads'),
     maxSize: parseIntEnv('UPLOAD_MAX_SIZE', 5 * 1024 * 1024),
@@ -103,7 +96,6 @@ module.exports = {
     }
   },
 
-  // CMS / Backup
   backup: {
     enabled: process.env.BACKUP_ENABLED !== 'false',
   },
@@ -116,13 +108,11 @@ module.exports = {
     maxBackups: parseIntEnv('CMS_MAX_BACKUPS', 20)
   },
 
-  // GDPR
   gdpr: {
     logDir: process.env.GDPR_LOG_DIR || path.join(DATA_DIR, 'gdpr'),
     dataRetentionDays: parseIntEnv('GDPR_LOG_RETENTION_DAYS', 365)
   },
 
-  // Logging
   log: {
     level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
     dir: process.env.LOG_DIR || path.join(DATA_DIR, 'logs'),
@@ -130,7 +120,6 @@ module.exports = {
     maxSize: process.env.LOG_MAX_SIZE || '20m'
   },
 
-  // Security
   security: {
     bcryptRounds: parseIntEnv('BCRYPT_ROUNDS', 12),
     sessionSecret: process.env.SESSION_SECRET || 'session-secret-change-me',

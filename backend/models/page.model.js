@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Page Model
+// Webowo v3.1 – Page Model
 // ============================================
 
 const db = require('../db/database');

@@ -1,12 +1,12 @@
 // ============================================
-// Webowo v3.0 – Helpers
+// Webowo v3.1 – Helpers
 // ============================================
 
 function slugify(text) {
   return text
     .toString()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')

@@ -1,338 +1,238 @@
 // ============================================
-// Webowo v3.0 – Hero Section
-// Cinematic, animated, with particle background
+// Webowo v3.1 – Hero Section
 // ============================================
-
-import { t } from '../../core/i18n.js';
 
 class WebowoSectionHero extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this._onI18nChange = () => {
-      this.render();
-      // Re-initialize particles after DOM update
-      requestAnimationFrame(() => this._initParticles());
-    };
-    this._particles = [];
-    this._rafId = null;
-    this._resizeHandler = null;
   }
 
   connectedCallback() {
     this.render();
-    window.addEventListener('i18n:changed', this._onI18nChange);
-    this._initParticles();
+    this.initParticles();
   }
 
-  disconnectedCallback() {
-    window.removeEventListener('i18n:changed', this._onI18nChange);
-    if (this._rafId) cancelAnimationFrame(this._rafId);
-    if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
-  }
-
-  _initParticles() {
-    const canvas = this.shadowRoot.querySelector('.particles-canvas');
+  initParticles() {
+    const canvas = this.shadowRoot.querySelector('canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
 
-    // Remove old resize handler if exists
-    if (this._resizeHandler) {
-      window.removeEventListener('resize', this._resizeHandler);
-    }
-
     const resize = () => {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
       ctx.scale(dpr, dpr);
     };
-    this._resizeHandler = resize;
     resize();
     window.addEventListener('resize', resize);
 
-    // Create particles
-    const particleCount = Math.min(50, Math.floor(canvas.width / 30));
-    this._particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * canvas.width / dpr,
-      y: Math.random() * canvas.height / dpr,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      radius: Math.random() * 2 + 1,
+    const particles = Array.from({ length: 30 }, () => ({
+      x: Math.random() * canvas.offsetWidth,
+      y: Math.random() * canvas.offsetHeight,
+      r: Math.random() * 3 + 1,
+      dx: (Math.random() - 0.5) * 0.5,
+      dy: (Math.random() - 0.5) * 0.5,
       opacity: Math.random() * 0.5 + 0.2
     }));
 
+    let animId;
     const animate = () => {
-      const w = canvas.width / dpr;
-      const h = canvas.height / dpr;
-      ctx.clearRect(0, 0, w, h);
-
-      this._particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-
+      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      particles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.offsetWidth) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.offsetHeight) p.dy *= -1;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(0, 92, 230, ${p.opacity})`;
         ctx.fill();
-
-        // Draw connections
-        for (let j = i + 1; j < this._particles.length; j++) {
-          const p2 = this._particles[j];
-          const dx = p.x - p2.x;
-          const dy = p.y - p2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(0, 92, 230, ${0.1 * (1 - dist / 120)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
       });
-
-      this._rafId = requestAnimationFrame(animate);
+      animId = requestAnimationFrame(animate);
     };
     animate();
+
+    this._cleanup = () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+    };
+  }
+
+  disconnectedCallback() {
+    this._cleanup?.();
   }
 
   render() {
     const data = this.data || {};
-    const title = data.title || t('hero_title') || 'Tworzę nowoczesne strony, które';
-    const subtitle = data.subtitle || t('hero_subtitle') || 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.';
-    const badge = data.badge || t('hero_badge') || 'Dostępny do nowych projektów';
-    const ctaPrimary = data.ctaPrimary || { label: t('hero_cta_primary') || 'Bezpłatna wycena', href: '#contact' };
-    const ctaSecondary = data.ctaSecondary || { label: t('hero_cta_secondary') || 'Zobacz realizacje', href: '#portfolio' };
+    const title = data.title || 'Tworzę nowoczesne strony, które';
+    const subtitle = data.subtitle || 'Profesjonalne strony internetowe, sklepy online i aplikacje webowe.';
+    const badge = data.badge || 'Dostępny do nowych projektów';
+    const ctaPrimary = data.ctaPrimary || { label: 'Bezpłatna wycena', href: '#contact' };
+    const ctaSecondary = data.ctaSecondary || { label: 'Zobacz realizacje', href: '#portfolio' };
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; overflow: hidden; }
+        :host { display: block; }
         .hero {
+          position: relative;
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
           overflow: hidden;
-          background: var(--gradient-hero);
-          padding: var(--space-16) var(--container-padding);
+          background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f8fafc 100%);
         }
-        .particles-canvas {
+        canvas {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
           pointer-events: none;
-          z-index: 0;
         }
-        .hero-grid {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(0, 92, 230, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 92, 230, 0.03) 1px, transparent 1px);
-          background-size: 60px 60px;
-          mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-          -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-          pointer-events: none;
-          z-index: 0;
-        }
-        .hero-content {
+        .content {
           position: relative;
           z-index: 1;
           text-align: center;
           max-width: 800px;
-          animation: hero-fade-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          padding: 2rem;
+          animation: fade-in-up 0.8s ease-out;
         }
-        @keyframes hero-fade-in {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .hero-badge {
+        .badge {
           display: inline-flex;
           align-items: center;
-          gap: var(--space-2);
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
           background: rgba(0, 212, 170, 0.1);
-          color: var(--color-accent-600);
-          padding: var(--space-2) var(--space-4);
-          border-radius: var(--radius-full);
-          font-size: var(--text-sm);
-          font-weight: 600;
-          margin-bottom: var(--space-6);
-          border: 1px solid rgba(0, 212, 170, 0.2);
-          animation: hero-fade-in 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+          border: 1px solid rgba(0, 212, 170, 0.3);
+          border-radius: 9999px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #059669;
+          margin-bottom: 1.5rem;
         }
-        .hero-badge-dot {
+        .badge-dot {
           width: 8px;
           height: 8px;
-          background: var(--color-accent-500);
+          background: #00d4aa;
           border-radius: 50%;
           animation: pulse-glow 2s infinite;
         }
-        .hero-title {
+        h1 {
           font-size: clamp(2.5rem, 6vw, 4.5rem);
           font-weight: 900;
-          line-height: 1.05;
-          margin: 0 0 var(--space-6);
-          letter-spacing: -0.03em;
-          animation: hero-fade-in 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+          line-height: 1.1;
+          color: #0f172a;
+          margin-bottom: 1.5rem;
         }
-        .hero-title .gradient {
-          background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-accent-500) 100%);
+        .gradient-text {
+          background: linear-gradient(135deg, #005ce6 0%, #00d4aa 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .hero-subtitle {
-          font-size: clamp(1.125rem, 2vw, 1.5rem);
-          color: var(--color-muted);
+        .subtitle {
+          font-size: clamp(1rem, 2.5vw, 1.25rem);
+          color: #64748b;
           max-width: 600px;
-          margin: 0 auto var(--space-8);
+          margin: 0 auto 2.5rem;
           line-height: 1.7;
-          animation: hero-fade-in 1s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .hero-ctas {
+        .ctas {
           display: flex;
-          gap: var(--space-4);
+          gap: 1rem;
           justify-content: center;
           flex-wrap: wrap;
-          animation: hero-fade-in 1s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .hero-cta-primary {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          background: var(--gradient-primary);
+        .btn-primary {
+          background: linear-gradient(135deg, #005ce6 0%, #0047b3 100%);
           color: white;
-          padding: var(--space-4) var(--space-8);
-          border-radius: var(--radius-xl);
+          padding: 1rem 2rem;
+          border-radius: 0.75rem;
+          font-weight: 600;
           text-decoration: none;
-          font-weight: 700;
-          font-size: var(--text-base);
-          transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-          box-shadow: 0 8px 24px rgba(0, 92, 230, 0.35);
+          transition: all 150ms;
+          box-shadow: 0 4px 12px rgba(0, 92, 230, 0.3);
         }
-        .hero-cta-primary:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 32px rgba(0, 92, 230, 0.45);
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 92, 230, 0.4);
         }
-        .hero-cta-secondary {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
+        .btn-secondary {
           background: transparent;
-          color: var(--color-text);
-          padding: var(--space-4) var(--space-8);
-          border-radius: var(--radius-xl);
+          color: #0f172a;
+          padding: 1rem 2rem;
+          border-radius: 0.75rem;
+          font-weight: 600;
           text-decoration: none;
-          font-weight: 700;
-          font-size: var(--text-base);
-          border: 2px solid var(--color-border);
-          transition: all var(--transition-fast);
+          border: 2px solid #e2e8f0;
+          transition: all 150ms;
         }
-        .hero-cta-secondary:hover {
-          border-color: var(--color-primary-500);
-          color: var(--color-primary-500);
-          background: var(--color-primary-50);
+        .btn-secondary:hover {
+          border-color: #005ce6;
+          color: #005ce6;
+          background: #eff6ff;
         }
-        .hero-stats {
-          display: flex;
-          justify-content: center;
-          gap: var(--space-12);
-          margin-top: var(--space-16);
-          animation: hero-fade-in 1s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        .hero-stat {
-          text-align: center;
-        }
-        .hero-stat-value {
-          font-size: var(--text-3xl);
-          font-weight: 900;
-          color: var(--color-text);
-          line-height: 1;
-        }
-        .hero-stat-label {
-          font-size: var(--text-sm);
-          color: var(--color-muted);
-          margin-top: var(--space-1);
-        }
-        .hero-scroll-indicator {
+        .scroll-down {
           position: absolute;
-          bottom: var(--space-8);
+          bottom: 2rem;
           left: 50%;
           transform: translateX(-50%);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: var(--space-2);
-          color: var(--color-muted);
-          font-size: var(--text-xs);
-          font-weight: 500;
-          animation: hero-fade-in 1s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+          gap: 0.5rem;
+          color: #94a3b8;
+          font-size: 0.875rem;
+          animation: fade-in 1s ease 1s both;
           cursor: pointer;
-          transition: color var(--transition-fast);
         }
-        .hero-scroll-indicator:hover {
-          color: var(--color-primary-500);
+        .scroll-down svg {
+          animation: float 2s ease infinite;
         }
-        .hero-scroll-indicator svg {
-          animation: bounce 2s infinite;
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-8px); }
-          60% { transform: translateY(-4px); }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        @media (max-width: 768px) {
-          .hero-stats { gap: var(--space-6); }
-          .hero-stat-value { font-size: var(--text-2xl); }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(0, 212, 170, 0); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @media (max-width: 640px) {
+          .ctas { flex-direction: column; }
+          .ctas a { width: 100%; text-align: center; }
         }
       </style>
-      <section class="hero" id="hero">
-        <canvas class="particles-canvas"></canvas>
-        <div class="hero-grid"></div>
-        <div class="hero-content">
-          <div class="hero-badge">
-            <span class="hero-badge-dot"></span>
+      <section class="hero" data-section="hero">
+        <canvas></canvas>
+        <div class="content">
+          <div class="badge">
+            <span class="badge-dot"></span>
             ${badge}
           </div>
-          <h1 class="hero-title">
-            ${title}<br><span class="gradient">przynoszą rezultaty</span>
+          <h1>
+            ${title}<br>
+            <span class="gradient-text">przynoszą rezultaty</span>
           </h1>
-          <p class="hero-subtitle">${subtitle}</p>
-          <div class="hero-ctas">
-            <a class="hero-cta-primary" href="${ctaPrimary.href}" data-track="hero_cta_primary">
-              ${ctaPrimary.label}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </a>
-            <a class="hero-cta-secondary" href="${ctaSecondary.href}" data-track="hero_cta_secondary">
-              ${ctaSecondary.label}
-            </a>
-          </div>
-          <div class="hero-stats">
-            <div class="hero-stat">
-              <div class="hero-stat-value" data-count-target="50" data-count-suffix="+">50+</div>
-              <div class="hero-stat-label">Projektów</div>
-            </div>
-            <div class="hero-stat">
-              <div class="hero-stat-value" data-count-target="100" data-count-suffix="%">100%</div>
-              <div class="hero-stat-label">Zadowolenia</div>
-            </div>
-            <div class="hero-stat">
-              <div class="hero-stat-value" data-count-target="5" data-count-suffix="+">5+</div>
-              <div class="hero-stat-label">Lat doświadczenia</div>
-            </div>
+          <p class="subtitle">${subtitle}</p>
+          <div class="ctas">
+            <a href="${ctaPrimary.href}" class="btn-primary">${ctaPrimary.label}</a>
+            <a href="${ctaSecondary.href}" class="btn-secondary">${ctaSecondary.label}</a>
           </div>
         </div>
-        <div class="hero-scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
+        <div class="scroll-down" onclick="document.getElementById('stats').scrollIntoView({behavior:'smooth'})">
           <span>Przewiń w dół</span>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M19 12l-7 7-7-7"/>
+          </svg>
         </div>
       </section>
     `;

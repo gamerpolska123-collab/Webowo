@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Validate Middleware
+// Webowo v3.1 – Validate Middleware
 // ============================================
 
 const { validationResult } = require('express-validator');

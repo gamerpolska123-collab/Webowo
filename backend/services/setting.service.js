@@ -1,5 +1,5 @@
 // ============================================
-// Webowo v3.0 – Setting Service
+// Webowo v3.1 – Setting Service
 // ============================================
 
 const settingModel = require('../models/setting.model');
@@ -18,8 +18,12 @@ class SettingService {
     return settingModel.findAll();
   }
 
-  async set(key, value, isPublic = false) {
-    return settingModel.set(key, value, isPublic);
+  async set(key, value, isPublic = false, category = 'general') {
+    return settingModel.set(key, value, isPublic, category);
+  }
+
+  async getByKey(key) {
+    return settingModel.findByKey(key);
   }
 }
 
