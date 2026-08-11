@@ -22,16 +22,14 @@ const logFormat = printf(({ level, message, timestamp, stack, ...metadata }) => 
 
 const transports = [];
 
-// Console transport (development)
-if (config.nodeEnv !== 'production') {
-  transports.push(new winston.transports.Console({
-    format: combine(
-      colorize(),
-      timestamp({ format: 'HH:mm:ss' }),
-      logFormat
-    )
-  }));
-}
+// Console transport (always, for Docker compatibility)
+transports.push(new winston.transports.Console({
+  format: combine(
+    colorize(),
+    timestamp({ format: 'HH:mm:ss' }),
+    logFormat
+  )
+}));
 
 // File transports (all environments)
 transports.push(

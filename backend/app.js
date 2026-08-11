@@ -55,10 +55,21 @@ app.use(hpp());
 
 // CORS
 const corsOptions = {
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
+    // Allow same-origin / server-to-server requests
     if (!origin) return callback(null, true);
+    // Allow all in development
     if (config.nodeEnv === 'development') return callback(null, true);
+    // Allow whitelisted origins
     if (config.corsOrigins.includes(origin)) return callback(null, true);
+    // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (/^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|127\.|localhost)/.test(origin)) {
+      return callback(null, true);
+    }
+    // Allow any subdomain of matys.net.pl
+    if (/https?:\/\/([a-z0-9-]+\.)?matys\.net\.pl/.test(origin)) {
+      return callback(null, true);
+    }
     logger.warn(`CORS blocked origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
