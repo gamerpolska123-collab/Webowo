@@ -37,7 +37,12 @@ class SectionModel {
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
         fields.push(`${key} = ?`);
-        values.push(key === 'data' ? JSON.stringify(value) : value);
+        if (key === 'data') {
+          // Avoid double-stringifying if already a JSON string
+          values.push(typeof value === 'string' ? value : JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
       }
     });
     if (fields.length === 0) return this.findById(id);

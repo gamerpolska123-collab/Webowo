@@ -60,10 +60,11 @@ if (fs.existsSync(MIGRATIONS_DIR)) {
   }
 }
 
-// Seed if no users exist
+// Seed if no users exist or no home page
 try {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  if (userCount === 0) {
+  const pageCount = db.prepare('SELECT COUNT(*) as count FROM pages').get().count;
+  if (userCount === 0 || pageCount === 0) {
     const SEEDS_DIR = path.join(__dirname, 'db', 'seeds');
     const seedFile = path.join(SEEDS_DIR, 'seed.sql');
     if (fs.existsSync(seedFile)) {

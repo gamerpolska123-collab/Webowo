@@ -38,8 +38,8 @@ class ContactModel {
   }
 
   create(data) {
-    const { name, email, subject, budget, message } = data;
-    const result = db.prepare(`INSERT INTO ${this.table} (name, email, subject, budget, message) VALUES (?, ?, ?, ?, ?)`).run(name, email, subject, budget || null, message);
+    const { name, email, phone, subject, budget, message, ip, user_agent } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (name, email, phone, subject, budget, message, ip, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(name, email, phone || null, subject, budget || null, message, ip || null, user_agent || null);
     return this.findById(result.lastInsertRowid);
   }
 

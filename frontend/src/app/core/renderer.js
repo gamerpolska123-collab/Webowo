@@ -113,7 +113,14 @@ function renderSection(container, section) {
 
   const el = document.createElement(tag);
   try {
-    el.data = JSON.parse(section.data || '{}');
+    const raw = section.data;
+    if (typeof raw === 'string') {
+      el.data = JSON.parse(raw || '{}');
+    } else if (raw && typeof raw === 'object') {
+      el.data = raw;
+    } else {
+      el.data = {};
+    }
   } catch {
     el.data = {};
   }

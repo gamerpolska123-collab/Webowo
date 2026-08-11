@@ -64,18 +64,33 @@ class BackupService {
 
   _cleanupOldBackups() {
     const retentionDays = config.cms.backupRetentionDays || 30;
+    const maxBackups = config.cms.maxBackups || 20;
     const cutoff = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
 
-    fs.readdirSync(config.cms.backupDir)
+    const backups = fs.readdirSync(config.cms.backupDir)
       .filter(f => f.endsWith('.sqlite') && !f.startsWith('pre-restore'))
-      .forEach(f => {
+      .map(f => {
         const filePath = path.join(config.cms.backupDir, f);
         const stat = fs.statSync(filePath);
-        if (stat.mtimeMs < cutoff) {
-          fs.unlinkSync(filePath);
-          logger.info(`Old backup removed: ${f}`);
-        }
-      });
+        return { filename: f, path: filePath, mtime: stat.mtimeMs };
+      })
+      .sort((a, b) => a.mtime - b.mtime); // oldest first
+
+    // Remove by retention
+    backups.forEach(b => {
+      if (b.mtime < cutoff) {
+        fs.unlinkSync(b.path);
+        logger.info(`Old backup removed (retention): ${b.filename}`);
+      }
+    });
+
+    // Remove by max count (keep newest)
+    const remaining = backups.filter(b => fs.existsSync(b.path));
+    while (remaining.length > maxBackups) {
+      const oldest = remaining.shift();
+      fs.unlinkSync(oldest.path);
+      logger.info(`Old backup removed (max count): ${oldest.filename}`);
+    }
   }
 }
 

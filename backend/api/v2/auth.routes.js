@@ -18,6 +18,21 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
+// POST /api/v2/auth/register
+router.post('/register', authLimiter, [
+  body('username').trim().notEmpty().withMessage('Nazwa użytkownika jest wymagana').isLength({ min: 3, max: 50 }),
+  body('email').isEmail().normalizeEmail().withMessage('Podaj prawidłowy e-mail'),
+  body('password').isLength({ min: 8 }).withMessage('Hasło musi mieć min. 8 znaków'),
+  body('role').optional().isIn(['admin', 'editor', 'viewer']).withMessage('Nieprawidłowa rola')
+], handleValidation, async (req, res, next) => {
+  try {
+    const result = await authService.register(req.body);
+    res.status(201).json({ success: true, data: result, message: 'Konto utworzone pomyślnie' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/v2/auth/login
 router.post('/login', authLimiter, [
   body('username').trim().notEmpty().withMessage('Nazwa użytkownika jest wymagana'),
@@ -25,7 +40,14 @@ router.post('/login', authLimiter, [
 ], handleValidation, async (req, res, next) => {
   try {
     const result = await authService.login(req.body);
-    res.json({ success: true, data: result });
+    // Set refresh token as httpOnly cookie
+    res.cookie('webowo_refresh', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    res.json({ success: true, data: { accessToken: result.accessToken, expiresIn: result.expiresIn, user: result.user } });
   } catch (err) {
     next(err);
   }
@@ -34,8 +56,16 @@ router.post('/login', authLimiter, [
 // POST /api/v2/auth/refresh
 router.post('/refresh', async (req, res, next) => {
   try {
-    const result = await authService.refresh(req.body.refreshToken);
-    res.json({ success: true, data: result });
+    const refreshToken = req.cookies?.webowo_refresh || req.body?.refreshToken;
+    const result = await authService.refresh(refreshToken);
+    // Rotate refresh cookie
+    res.cookie('webowo_refresh', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    res.json({ success: true, data: { accessToken: result.accessToken, expiresIn: result.expiresIn } });
   } catch (err) {
     next(err);
   }
@@ -44,7 +74,9 @@ router.post('/refresh', async (req, res, next) => {
 // POST /api/v2/auth/logout
 router.post('/logout', authenticate, async (req, res, next) => {
   try {
-    await authService.logout(req.body.refreshToken);
+    const refreshToken = req.cookies?.webowo_refresh || req.body?.refreshToken;
+    await authService.logout(refreshToken);
+    res.clearCookie('webowo_refresh');
     res.json({ success: true, message: 'Wylogowano pomyślnie' });
   } catch (err) {
     next(err);

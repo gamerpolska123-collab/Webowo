@@ -9,9 +9,14 @@ class WebowoSectionHero extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this._onI18nChange = () => this.render();
+    this._onI18nChange = () => {
+      this.render();
+      // Re-initialize particles after DOM update
+      requestAnimationFrame(() => this._initParticles());
+    };
     this._particles = [];
     this._rafId = null;
+    this._resizeHandler = null;
   }
 
   connectedCallback() {
@@ -23,6 +28,7 @@ class WebowoSectionHero extends HTMLElement {
   disconnectedCallback() {
     window.removeEventListener('i18n:changed', this._onI18nChange);
     if (this._rafId) cancelAnimationFrame(this._rafId);
+    if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
   }
 
   _initParticles() {
@@ -31,12 +37,19 @@ class WebowoSectionHero extends HTMLElement {
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
 
+    // Remove old resize handler if exists
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+    }
+
     const resize = () => {
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
       ctx.scale(dpr, dpr);
     };
+    this._resizeHandler = resize;
     resize();
     window.addEventListener('resize', resize);
 
@@ -99,7 +112,7 @@ class WebowoSectionHero extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; }
+        :host { display: block; overflow: hidden; }
         .hero {
           min-height: 100vh;
           display: flex;

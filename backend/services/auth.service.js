@@ -38,6 +38,25 @@ function generateTokens(user) {
 }
 
 class AuthService {
+  async register({ username, email, password, role = 'editor' }) {
+    // Check uniqueness
+    const existingUser = userModel.findByUsername(username);
+    if (existingUser) {
+      throw Object.assign(new Error('Nazwa użytkownika jest już zajęta'), { statusCode: 409 });
+    }
+    const existingEmail = db.prepare(`SELECT * FROM users WHERE email = ?`).get(email);
+    if (existingEmail) {
+      throw Object.assign(new Error('Adres e-mail jest już używany'), { statusCode: 409 });
+    }
+
+    const hash = await bcrypt.hash(password, config.security.bcryptRounds);
+    const result = db.prepare(`INSERT INTO users (username, email, password_hash, role, is_active) VALUES (?, ?, ?, ?, ?)`).run(username, email, hash, role, 1);
+
+    const user = userModel.findById(result.lastInsertRowid);
+    logger.info(`New user registered: ${username}`);
+    return { id: user.id, username: user.username, email: user.email, role: user.role };
+  }
+
   async login({ username, password }) {
     const user = userModel.findByUsername(username);
     if (!user) {

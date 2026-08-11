@@ -23,8 +23,8 @@ class MediaModel {
   }
 
   create(data) {
-    const { filename, original_name, mime_type, size, width, height, url } = data;
-    const result = db.prepare(`INSERT INTO ${this.table} (filename, original_name, mime_type, size, width, height, url) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(filename, original_name, mime_type, size, width, height, url);
+    const { filename, original_name, mime_type, size, width, height, variants, alt_text, url } = data;
+    const result = db.prepare(`INSERT INTO ${this.table} (filename, original_name, mime_type, size, width, height, variants, alt_text, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(filename, original_name, mime_type, size, width, height, variants || null, alt_text || null, url);
     return this.findById(result.lastInsertRowid);
   }
 

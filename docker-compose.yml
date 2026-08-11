@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -24,10 +22,10 @@ services:
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:7777}
       - SITE_URL=${SITE_URL:-https://matys.net.pl}
       - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
-      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
       - EMAIL_FROM=${EMAIL_FROM:-kontakt@webowo.pl}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:

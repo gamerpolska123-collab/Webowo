@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.0.1] – 2026-08-09
+
+### Fixed
+- Backend: Added missing `express-validator` dependency (login 500 error)
+- Backend: Synchronized `001_init.sql` and `schema.sql` column names (`last_login`)
+- Backend: Seed now creates default sections for home page (fixes 404 on `/api/v2/content/pages/home`)
+- Backend: `contact.model.js` now persists `phone`, `ip`, `user_agent` fields
+- Backend: `media.model.js` now persists `variants`, `alt_text` fields
+- Backend: `section.model.js` guards against double JSON stringify in `update()`
+- Backend: Auth routes set `httpOnly` refresh token cookie (login, refresh, logout)
+- Backend: Added `POST /api/v2/auth/register` endpoint and `register()` service method
+- Backend: Synchronized `.env.example` variable names with `config.js` (`CMS_BACKUP_DIR`, `CMS_MAX_BACKUPS`, `GDPR_LOG_RETENTION_DAYS`)
+- Frontend: `renderer.js` handles both string and object `section.data` (prevents JSON.parse crash)
+- Frontend: `router.js` normalizes hash routes (`#about` -> `/about` mapping)
+- Frontend: `hero.js` re-initializes particles after language change; cleans up resize listener on disconnect (memory leak fix)
+- Frontend: `about.css` cleaned from duplicated hero styles
+- Frontend: CSP updated to allow Google Fonts (`connect-src`)
+- Frontend: Service Worker skips external resources (prevents CSP violations)
+- Frontend: `manifest.json` uses SVG icon instead of missing PNGs
+
 ## [3.0.0] – 2026-08-06
 
 ### Added

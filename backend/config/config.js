@@ -104,17 +104,22 @@ module.exports = {
   },
 
   // CMS / Backup
+  backup: {
+    enabled: process.env.BACKUP_ENABLED !== 'false',
+  },
+
   cms: {
-    backupDir: process.env.BACKUP_DIR || path.join(DATA_DIR, 'backups'),
+    backupDir: process.env.CMS_BACKUP_DIR || path.join(DATA_DIR, 'backups'),
     backupRetentionDays: parseIntEnv('BACKUP_RETENTION_DAYS', 30),
     backupCron: process.env.BACKUP_CRON || '0 2 * * *',
-    maxRevisions: parseIntEnv('MAX_REVISIONS', 50)
+    maxRevisions: parseIntEnv('MAX_REVISIONS', 50),
+    maxBackups: parseIntEnv('CMS_MAX_BACKUPS', 20)
   },
 
   // GDPR
   gdpr: {
     logDir: process.env.GDPR_LOG_DIR || path.join(DATA_DIR, 'gdpr'),
-    dataRetentionDays: parseIntEnv('GDPR_RETENTION_DAYS', 365)
+    dataRetentionDays: parseIntEnv('GDPR_LOG_RETENTION_DAYS', 365)
   },
 
   // Logging

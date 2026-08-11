@@ -37,7 +37,8 @@ class AdminApp {
       headers: { Authorization: `Bearer ${this.token}` }
     });
     if (!res.ok) throw new Error('Unauthorized');
-    this.user = await res.json();
+    const result = await res.json();
+    this.user = result.data || result;
   }
 
   renderLogin() {
@@ -188,7 +189,6 @@ class AdminApp {
         }
 
         localStorage.setItem('admin_token', data.data.accessToken);
-        localStorage.setItem('admin_refresh', data.data.refreshToken);
         window.location.reload();
       } catch (err) {
         errorEl.textContent = err.message;

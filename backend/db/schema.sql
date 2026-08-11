@@ -44,10 +44,13 @@ CREATE TABLE IF NOT EXISTS contacts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
-  subject TEXT NOT NULL,
+  phone TEXT,
+  subject TEXT,
   budget TEXT,
   message TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new', 'read', 'replied', 'archived')),
+  ip TEXT,
+  user_agent TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -61,6 +64,8 @@ CREATE TABLE IF NOT EXISTS media (
   size INTEGER NOT NULL DEFAULT 0,
   width INTEGER,
   height INTEGER,
+  variants TEXT,
+  alt_text TEXT,
   url TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -70,6 +75,7 @@ CREATE TABLE IF NOT EXISTS settings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL UNIQUE,
   value TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'general' CHECK(category IN ('general', 'theme', 'seo', 'email', 'social')),
   is_public INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -105,3 +111,7 @@ CREATE INDEX IF NOT EXISTS idx_contacts_created ON contacts(created_at);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_revisions_entity ON revisions(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_settings_category ON settings(category);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON refresh_tokens(expires_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pages_slug ON pages(slug);

@@ -17,7 +17,7 @@ class ContentService {
       ...page,
       sections: sections.map(s => ({
         ...s,
-        data: JSON.parse(s.data || '{}')
+        data: s.data || '{}'
       }))
     };
   }

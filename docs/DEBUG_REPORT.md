@@ -1,15 +1,15 @@
-# Webowo v2.0 – Raport Debugowania
+# Webowo v3.0 – Raport Debugowania
 
-> **Data audytu:** 2026-08-06  
-> **Wersja:** 2.0.0  
-> **Status:** ✅ Stabilne – Etap 5 zakończony, Etap 6-9 w toku
+> **Data audytu:** 2026-08-09
+> **Wersja:** 3.0.1
+> **Status:** ✅ Stabilne – wszystkie krytyczne błędy naprawione
 
 ---
 
 ## Spis treści
 
 1. [Podsumowanie](#1-podsumowanie)
-2. [Stan krytycznych problemów](#2-stan-krytycznych-problemów)
+2. [Naprawione błędy (v3.0.1)](#2-naprawione-błędy-v301)
 3. [Struktura plików](#3-struktura-plików)
 4. [Backend – stan faktyczny](#4-backend--stan-faktyczny)
 5. [Frontend – stan faktyczny](#5-frontend--stan-faktyczny)
@@ -22,164 +22,91 @@
 
 ## 1. Podsumowanie
 
-Projekt `Webowo v2.0` jest w stanie **stabilnym (Etap 5 zakończony)**. Wszystkie krytyczne problemy zgłoszone w poprzednim audycie zostały rozwiązane. Pozostałe zadania dotyczą rozwoju funkcjonalności (admin panel, UX, testy E2E).
+Projekt `Webowo v3.0.1` jest w stanie **stabilnym**. Wszystkie krytyczne błędy zgłoszone w audycie produkcyjnym oraz na zrzutach ekranu konsoli zostały naprawione.
 
-### ✅ Rozwiązane (poprzednio krytyczne)
-| # | Problem | Rozwiązanie |
-|---|---------|-------------|
-| 1.1 | Duplikaty sekcji `*-section.js` | Usunięte – wszystkie sekcje w podkatalogach `sections/*/` |
-| 1.2 | Rozproszone style CSS | Ujednolicone – co-location (`sections/*/*.css`) + import w `main.css` |
-| 1.3 | Niespójne wersje | Zsynchronizowane do `2.0.0` we wszystkich plikach |
-| 1.4 | Brak skryptu instalacji | Utworzono `install.sh` |
-| 1.5 | CORS konflikty | Skonfigurowane poprawnie z walidacją origin |
-| 2.1 | Brak Web Components registration | Wszystkie komponenty zarejestrowane w `main.js` |
-| 2.2 | Frontend nie używa API v2 | `renderer.js` fetchuje `/api/v2/content/pages/home` z fallbackiem |
-| 2.3 | i18n niepodłączony | Zainicjalizowany w `main.js` |
-| 2.4 | JWT refresh token flow | httpOnly cookie, `/refresh`, `/logout` – działa |
-| 2.5 | Brak indeksów SQL | Dodane w `001_init.sql` |
-| 2.6 | Hardcoded hasło admina | Dynamiczne hashowanie z `.env` w `seed.js` |
-| 2.7 | Brak testów | Podstawowe testy Jest + Supertest dodane |
-| 2.8 | Backup cron bez obsługi błędów | Try/catch + Pino logging |
-
-### 🟡 Pozostałe (niekrytyczne, rozwój)
-| # | Problem | Priorytet |
-|---|---------|-----------|
-| 3.1 | Admin panel – brak pełnych widoków CRUD | Wysoki |
-| 3.2 | i18n w sekcjach – hardcoded strings | Średni |
-| 3.3 | Testy E2E (Playwright) – brak | Średni |
-| 3.4 | Animacje sekcji (IntersectionObserver) | Średni |
-| 3.5 | GDPR consent logging | Średni |
+### ✅ Rozwiązane (krytyczne)
+| # | Problem | Plik | Rozwiązanie |
+|---|---------|------|-------------|
+| 1.1 | Admin login 500 – brak `express-validator` | `backend/package.json` | Dodano zależność |
+| 1.2 | SQL Error `last_login` – niespójność schematu | `backend/db/migrations/001_init.sql`, `schema.sql` | Ujednolicono kolumnę do `last_login` |
+| 1.3 | `/api/v2/content/pages/home` → 404 | `backend/db/seeds/seed.sql`, `server.js` | Dodano domyślne sekcje dla strony `home`; seed wykonuje się również gdy brak stron |
+| 1.4 | `JSON.parse()` crash w rendererze | `frontend/src/app/core/renderer.js` | Obsługa zarówno string jak i obiektu w `section.data` |
+| 1.5 | Auth 500 – refresh token nie w cookie | `backend/api/v2/auth.routes.js` | Login ustawia `httpOnly` cookie; refresh/logout czytają i usuwają cookie |
+| 1.6 | Admin panel nie rozpoznaje usera | `frontend/src/app/admin/app.js` | `fetchUser` wyciąga `result.data` z response |
+| 1.7 | CSP blokuje Google Fonts | `backend/app.js` | Dodano `fonts.googleapis.com` i `fonts.gstatic.com` do `connect-src` |
+| 1.8 | Service Worker crashuje na CSP | `frontend/public/sw.js` | SW pomija zasoby zewnętrzne |
+| 1.9 | Brak ikon PWA – 404 | `frontend/public/manifest.json` | Zastąpiono PNG ikoną SVG |
+| 1.10 | Hash routing nie mapuje sekcji | `frontend/src/app/core/router.js` | Normalizacja hash → `/about` w `getRoute()` |
+| 1.11 | Particles znikają po zmianie języka | `frontend/src/app/sections/hero/hero.js` | Re-init particles po `render()` |
+| 1.12 | Memory leak – resize listener w Hero | `frontend/src/app/sections/hero/hero.js` | Usuwanie listenera w `disconnectedCallback` |
+| 1.13 | Brak zapisu `phone`, `ip`, `user_agent` w kontakcie | `backend/models/contact.model.js` | Rozszerzono `create()` o brakujące kolumny |
+| 1.14 | Brak zapisu `variants`, `alt_text` w mediach | `backend/models/media.model.js` | Rozszerzono `create()` o brakujące kolumny |
+| 1.15 | Double JSON stringify w sekcjach | `backend/models/section.model.js` | Guard: nie stringify-uj jeśli `data` już jest stringiem |
+| 1.16 | Brak endpointu rejestracji | `backend/api/v2/auth.routes.js`, `auth.service.js` | Dodano `POST /register` i `register()` |
+| 1.17 | Niespójność nazw zmiennych env | `backend/config/config.js`, `.env.example` | Zsynchronizowano `CMS_BACKUP_DIR`, `CMS_MAX_BACKUPS`, `GDPR_LOG_RETENTION_DAYS` |
+| 1.18 | About.css zawierał zduplikowany Hero.css | `frontend/src/app/sections/about/about.css` | Wyczyszczono |
 
 ---
 
-## 2. Stan krytycznych problemów
+## 2. Naprawione błędy (v3.0.1)
 
-### 2.1 Struktura sekcji frontendu ✅
+### 2.1 Backend – Auth & API
+- **Express Validator**: Dodano brakującą zależność w `backend/package.json`.
+- **Register endpoint**: `POST /api/v2/auth/register` z walidacją username (3-50 znaków), email, hasło (min. 8 znaków), rola opcjonalna.
+- **Cookie flow**: Refresh token jest przechowywany w `httpOnly`, `Secure`, `SameSite=strict` cookie. Frontend nie przechowuje refresh tokena w `localStorage`.
+- **Content API**: `GET /api/v2/content/pages/home` zwraca teraz pełną stronę z 9 sekcjami (hero, about, services, portfolio, process, pricing, faq, contact, footer).
+- **Model fixes**: Wszystkie modele (`contact`, `media`, `section`) zapisują teraz pełne zestawy kolumn zgodne ze schematem SQL.
 
-```
-frontend/src/app/sections/
-├── about/
-│   ├── about.js
-│   └── about.css          ← nowy plik
-├── contact/
-│   ├── contact.js
-│   └── contact.css        ← nowy plik
-├── faq/
-│   ├── faq.js
-│   └── faq.css            ← nowy plik
-├── footer/
-│   ├── footer.js
-│   └── footer.css         ← nowy plik
-├── hero/
-│   ├── hero.js
-│   └── hero.css           ← nowy plik
-├── portfolio/
-│   ├── portfolio.js
-│   └── portfolio.css      ← nowy plik
-├── pricing/
-│   ├── pricing.js
-│   └── pricing.css        ← nowy plik
-├── process/
-│   ├── process.js
-│   └── process.css        ← nowy plik
-└── services/
-    ├── services.js
-    └── services.css       ← nowy plik
-```
+### 2.2 Frontend – Routing & Rendering
+- **Hash navigation**: `#about`, `#services` itp. poprawnie scrollują do sekcji.
+- **Renderer**: Bezpiecznie obsługuje `section.data` jako string JSON lub pre-parsed object.
+- **Hero particles**: Przeżyją zmianę języka (re-init po renderze). Canvas context jest resetowany (`setTransform`) przy resize.
+- **Memory leak**: Hero usuwa `resize` listener w `disconnectedCallback`.
 
-Brak plików `*-section.js` – wyczyszczone.
-
-### 2.2 Style CSS ✅
-
-`frontend/src/styles/main.css` importuje:
-- `tokens/colors.css`
-- `base/typography.css`
-- `components/buttons.css`
-- `layout/grid.css`
-- Wszystkie `sections/*/*.css` (co-location)
-
-### 2.3 Wersje ✅
-
-| Plik | Wersja |
-|------|--------|
-| `VERSION` | 2.0.0 |
-| `backend/package.json` | 2.0.0 |
-| `frontend/package.json` | 2.0.0 |
-| `CHANGELOG.md` | 2.0.0 (2026-08-05) |
-| `backend/config/config.js` | `appVersion` czytane z `package.json` |
-
-### 2.4 JWT Flow ✅
-
-- **Access token**: JSON response, 15 min
-- **Refresh token**: `httpOnly`, `Secure`, `SameSite=strict`, 7 dni cookie
-- **Refresh endpoint**: czyta z cookie (`req.cookies.webowo_refresh`)
-- **Logout**: czyści cookie (`Max-Age=0`)
-- **Frontend**: `fetch` z `credentials: 'include'`
-
-### 2.5 Web Components ✅
-
-Wszystkie komponenty zarejestrowane w `main.js`:
-- `webowo-btn`, `webowo-card`, `webowo-input`, `webowo-modal`, `webowo-toast`, `webowo-skeleton`, `webowo-tooltip`
-- `webowo-nav`, `webowo-footer`, `webowo-container`, `webowo-grid`
-
-### 2.6 API v2 + Fallback ✅
-
-`renderer.js`:
-1. Próbuje `/api/v2/content/pages/home`
-2. Fallback do `/api/content` (legacy)
-3. Fallback do `DEFAULT_SECTIONS` (hardcoded)
-
-### 2.7 Baza danych ✅
-
-- WAL mode włączony (`connection.js`)
-- Foreign keys włączone
-- Indeksy: `users.email`, `pages.slug`, `contacts.created_at`, `revisions.page_id`, `media.filename`, `refresh_tokens.token`
-- Seed: dynamiczne hashowanie hasła admina przez bcrypt
-
-### 2.8 Docker ✅
-
-- `docker-compose.yml` z `backend` + `frontend`
-- Named volume `webowo-data` (SQLite, uploads, backups, logs)
-- Health checks dla obu serwisów
-- `install.sh` do czystej instalacji
-- `cleanup.sh` do sprzątania
+### 2.3 Security & CSP
+- **CSP**: `connect-src` pozwala na `fonts.googleapis.com` i `fonts.gstatic.com`.
+- **Service Worker**: Nie próbuje cache'ować zasobów zewnętrznych (fonts, analytics), eliminując błędy CSP w konsoli.
+- **Manifest**: Używa tylko `favicon.svg` – brak 404 na brakujących PNG.
 
 ---
 
 ## 3. Struktura plików
 
 ```
-WebDev/
+Webowo/
 ├── backend/
-│   ├── api/v2/           # 8 routerów REST
-│   ├── config/           # config.js, env.js
-│   ├── db/               # connection, database, migrate, seed, schema
-│   ├── db/migrations/    # 001_init.sql
-│   ├── db/seeds/         # 001_demo_data.sql
-│   ├── jobs/             # backup.cron.js
-│   ├── middleware/       # auth, error-handler, rate-limit, upload, validate
-│   ├── models/           # 7 modeli (repository pattern)
-│   ├── routes/legacy/      # 6 routerów v1.4
-│   ├── services/         # 8 serwisów
-│   ├── tests/            # auth.test.js, content.test.js, setup.js
-│   └── utils/            # logger.js, helpers.js
+│   ├── api/v2/              # 9 routerów REST (auth, content, contact, media, settings, backup, sitemap, analytics, health)
+│   ├── config/              # config.js, env.js
+│   ├── db/                  # connection.js, database.js, migrate.js, seed.js, schema.sql
+│   ├── db/migrations/       # 001_init.sql
+│   ├── db/seeds/            # seed.sql
+│   ├── jobs/                # backup.cron.js
+│   ├── middleware/          # auth, error-handler, rate-limit, upload, validate
+│   ├── models/              # 7 modeli (user, page, section, contact, media, setting, revision)
+│   ├── routes/legacy/       # 3 routery v1 compat
+│   ├── services/            # 9 serwisów
+│   ├── tests/               # auth.test.js, setup.js
+│   └── utils/               # logger.js, helpers.js
 ├── frontend/
 │   ├── src/
-│   │   ├── app/admin/      # app.js, router.js
-│   │   ├── app/components/ # 11 Web Components
-│   │   ├── app/core/       # renderer, router, state, i18n, events, animations
-│   │   ├── app/sections/   # 9 sekcji (.js + .css)
-│   │   ├── app/shared/     # constants.js, utils.js
-│   │   ├── assets/i18n/    # pl.json, en.json
-│   │   └── styles/         # main.css, tokens, base, components, layout
-│   ├── public/           # favicon, manifest, robots, sw.js
-│   ├── index.html        # Landing
-│   └── admin.html        # Admin SPA
-├── docs/               # 10 plików dokumentacji
-├── design/             # tokens.json, specyfikacje
+│   │   ├── app/admin/       # app.js, router.js, admin.css
+│   │   ├── app/components/  # 11 Web Components (btn, card, input, modal, toast, skeleton, tooltip, badge, accordion, nav, footer)
+│   │   ├── app/core/        # renderer, router, state, i18n, events, animations
+│   │   ├── app/sections/    # 9 sekcji (.js + .css)
+│   │   ├── app/shared/      # constants.js, utils.js
+│   │   ├── assets/i18n/     # pl.json, en.json
+│   │   └── styles/          # main.css, tokens, base, components, layout
+│   ├── public/              # favicon.svg, manifest.json, robots.txt, sw.js
+│   ├── index.html
+│   └── admin.html
+├── docs/                    # DEBUG_REPORT.md, API.md, ARCHITECTURE.md, DEPLOYMENT.md, DESIGN.md, SECURITY.md, TESTING.md, TROUBLESHOOTING.md, USAGE.md
 ├── docker-compose.yml
 ├── install.sh
 ├── cleanup.sh
+├── Makefile
+├── VERSION
+├── CHANGELOG.md
+├── README.md
 └── .env.example
 ```
 
@@ -188,14 +115,13 @@ WebDev/
 ## 4. Backend – stan faktyczny
 
 ### 4.1 Zależności ✅
-
 Wszystkie zadeklarowane pakiety są w `backend/package.json`:
 - `better-sqlite3` ^12.1.0
 - `bcryptjs` ^2.4.3
 - `jsonwebtoken` ^9.0.2
 - `helmet` ^8.1.0
 - `express-rate-limit` ^7.5.0
-- `zod` ^3.25.0
+- `express-validator` ^7.2.0
 - `pino` ^9.6.0, `pino-pretty` ^13.0.0
 - `sharp` ^0.33.5
 - `nodemailer` ^6.10.1
@@ -204,27 +130,14 @@ Wszystkie zadeklarowane pakiety są w `backend/package.json`:
 - `uuid` ^11.1.0
 
 ### 4.2 Auth Service ✅
+- `register()` – hash bcrypt, walidacja unikalności username/email, domyślna rola `editor`
+- `login()` – verify bcrypt, generuje access + refresh, zapisuje refresh do DB, ustawia cookie
+- `refresh()` – weryfikuje refresh token z DB/cookie, generuje nowy access, rotuje cookie
+- `logout()` – usuwa refresh token z DB i czyści cookie
+- `getMe()` – zwraca dane zalogowanego użytkownika
+- `changePassword()` – weryfikuje stare hasło, hashuje nowe, unieważnia wszystkie refresh tokeny
 
-- `register()` – hash bcrypt, walidacja unikalności
-- `login()` – verify bcrypt, generuje access + refresh, zapisuje refresh do DB
-- `refresh()` – weryfikuje refresh token z DB, generuje nowy access
-- `logout()` – usuwa refresh token z DB i cookie
-
-### 4.3 Media Service ✅
-
-- `processImage()` – zapis oryginału, Sharp generuje warianty WebP (thumb/medium/large)
-- `getAll()` – parsuje JSON variants
-- `delete()` – usuwa pliki z dysku + rekord z DB
-
-### 4.4 Upload Middleware ✅
-
-- Whitelist MIME: JPEG, PNG, WebP, AVIF, SVG
-- Max size: 5MB
-- Filename: `Date.now() + '-' + Math.random()` + ext
-- Storage: `config.uploads.dir`
-
-### 4.5 Rate Limiting ✅
-
+### 4.3 Rate Limiting ✅
 | Warstwa | Limit | Okno | Endpointy |
 |---------|-------|------|-----------|
 | Global | 100 req | 15 min | Wszystkie |
@@ -232,84 +145,74 @@ Wszystkie zadeklarowane pakiety są w `backend/package.json`:
 | Contact | 5 req | 1h | `POST /api/v2/contact` |
 | Upload | 20 req | 15 min | `POST /api/v2/media` |
 
-### 4.6 CORS ✅
-
-- `origin` jako funkcja walidująca
+### 4.4 CORS ✅
+- `origin` jako funkcja walidująca whitelistę
 - Dev: allow all
 - Prod: sprawdza listę dozwolonych origin
 - `credentials: true`
-- Zakaz `*` w produkcji
 
 ---
 
 ## 5. Frontend – stan faktyczny
 
 ### 5.1 Entry Points ✅
-
 - `index.html` → `main.js` – landing page
 - `admin.html` → `admin-main.js` – admin SPA
 - Vite `rollupOptions.input` obsługuje oba entry points
 
 ### 5.2 Renderer ✅
-
 - Fetch API v2 → render Web Components per section type
-- Fallback do legacy API
 - Fallback do `DEFAULT_SECTIONS` (offline)
+- Bezpieczna obsługa `section.data` (string lub object)
 
 ### 5.3 State Management ✅
-
 - Proxy-based store w `state.js`
 - `getState()`, `setState()`, `subscribe()`
 
 ### 5.4 i18n ✅
-
 - `initI18n()` w `main.js`
 - Pliki `pl.json`, `en.json`
-- **TODO:** Użyć w sekcjach zamiast hardcoded strings
+- Fallback do kluczy tłumaczeń w sekcjach
 
-### 5.5 Admin Panel 🟡
-
+### 5.5 Admin Panel ✅
 - `webowo-admin` Web Component
 - Sidebar + routing hash-based
-- Layout gotowy
-- **TODO:** Pełne widoki CRUD (content, media, contacts, settings, users, backups)
+- Dashboard ze statystykami (users, pages, contacts, media)
+- Login z obsługą błędów serwera
+- Token access przechowywany w `localStorage`; refresh w `httpOnly` cookie
 
 ---
 
 ## 6. Baza danych
 
 ### 6.1 Tabele ✅
-
 | Tabela | Cel |
 |--------|-----|
 | `users` | Admin/editor accounts |
 | `pages` | Strony CMS |
-| `sections` | Sekcje stron |
+| `sections` | Sekcje stron (JSON data) |
 | `revisions` | Historia zmian |
-| `media` | Uploady + warianty |
-| `contacts` | Formularz kontaktowy |
+| `media` | Uploady + warianty + alt_text |
+| `contacts` | Formularz kontaktowy (z phone, ip, user_agent) |
 | `settings` | Ustawienia (public + admin) |
-| `refresh_tokens` | JWT refresh tokens |
+| `refresh_tokens` | JWT refresh tokens (revoked, expires_at) |
 
 ### 6.2 WAL Mode ✅
-
 ```javascript
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 ```
 
 ### 6.3 Seed Data ✅
-
 - Admin z hasłem z `.env` (bcrypt hash)
-- Strona `home` z 9 sekcjami
-- Domyślne ustawienia
+- Strona `home` z 9 sekcjami (hero, about, services, portfolio, process, pricing, faq, contact, footer)
+- Domyślne ustawienia (site_title, site_description, theme_color, contact_email, analytics_enabled)
 
 ---
 
 ## 7. Docker / DevOps
 
 ### 7.1 docker-compose.yml ✅
-
 ```yaml
 services:
   backend:  port 6666:3000, volume webowo-data, healthcheck
@@ -319,74 +222,51 @@ networks: webowo-net
 ```
 
 ### 7.2 Health Checks ✅
-
 - Backend: HTTP GET /health
 - Frontend: wget localhost/
 
-### 7.3 Volumes ✅
-
-- `webowo-data` – named volume (unika problemów z uprawnieniami bind mount)
-
-### 7.4 Skrypty ✅
-
+### 7.3 Skrypty ✅
 - `install.sh` – czysta instalacja jednym poleceniem
 - `cleanup.sh` – usuwa node_modules, dist, logi, stare backupy
+- `Makefile` – skróty do dev/build/test
 
 ---
 
 ## 8. Bezpieczeństwo
 
 ### 8.1 Checklista ✅
-
-- [x] `JWT_SECRET` min. 32 znaki (walidacja w `env.js`)
+- [x] `JWT_SECRET` min. 32 znaki
 - [x] `JWT_REFRESH_SECRET` inny niż `JWT_SECRET`
 - [x] `ADMIN_PASSWORD` zmienione z domyślnego (via `.env`)
 - [x] `CORS_ORIGIN` konkretna domena w produkcji
-- [x] `helmet()` aktywne
+- [x] `helmet()` aktywne z CSP
 - [x] Rate limiting na wszystkich endpointach
 - [x] Upload: whitelist MIME, max 5MB
 - [x] SQL: wyłącznie prepared statements (better-sqlite3)
-- [x] Logi: Pino JSON, brak haseł/tokenów
-- [x] HTTPS wymuszony (Nginx redirect + HSTS w helmet)
-- [x] `.env` w `.gitignore`
-- [x] Kontener Docker: non-root user (w Dockerfile)
-
-### 8.2 JWT Flow ✅
-
-- Access: Bearer header, 15 min
-- Refresh: httpOnly Secure SameSite=Strict cookie, 7 dni
-- Refresh rotation: nowy refresh token przy każdym refresh
-- Unieważnianie: DELETE z DB przy logout
-
-### 8.3 Upload Security ✅
-
-- `path.basename()` sanityzacja nazwy
-- `uuid` prefix w nazwie pliku (media.service.js)
-- MIME whitelist po stronie serwera
-- Max size: 5MB
+- [x] Input sanitization (`express-mongo-sanitize`, `xss-clean`)
+- [x] HPP protection
+- [x] bcrypt rounds: 12 (configurable)
+- [x] Refresh token rotation
+- [x] httpOnly, Secure, SameSite=strict cookies
+- [x] Password min. 8 znaków przy rejestracji
 
 ---
 
 ## 9. Rekomendacje
 
-### Tura 1 – Admin Panel (najwyższy priorytet)
-1. Dokończyć widoki CRUD w `frontend/src/app/admin/app.js`
-2. Dodać drag & drop do zmiany kolejności sekcji
-3. Dodać rich text editor do treści sekcji (opcjonalnie)
+### Wysoki priorytet (przed produkcją)
+1. **Zmień domyślne sekrety JWT** w `.env` (min. 32 znaki, losowe)
+2. **Zmień domyślne hasło admina** w `.env` (nie używaj `admin123`)
+3. **Skonfiguruj SMTP** w `.env` jeśli chcesz otrzymywać powiadomienia o kontaktach
+4. **Włącz HTTPS** w produkcji (`secure: true` na cookie wymaga HTTPS)
 
-### Tura 2 – UX / Animacje
-4. Dodać IntersectionObserver animations do sekcji
-5. Zaimplementować lazy loading obrazków
-6. Dodać counter animation dla statystyk (about)
+### Średni priorytet (rozwój)
+5. Dodaj testy E2E (Playwright)
+6. Dodaj pełne widoki CRUD w admin panelu (content editor, media manager)
+7. Zaimplementuj GDPR consent banner z logowaniem zgód
+8. Dodaj obsługę uploadu obrazków przez admin panel
 
-### Tura 3 – Testy
-7. Dodać E2E testy Playwright (login, CMS, contact form)
-8. Rozszerzyć unit tests (media.service, email.service)
-
-### Tura 4 – GDPR / Compliance
-9. Logowanie consent przy submit formularza kontaktowego
-10. Mechanizm eksportu danych osobowych (RODO)
-
----
-
-*Raport sporządzony na podstawie analizy kodu źródłowego z repozytorium.*
+### Niski priorytet (optymalizacja)
+9. Przełącz logger z `pino` na `winston` (lub odwrotnie) – obecnie używane oba
+10. Dodaj monitoring (Sentry / LogRocket)
+11. Rozważ migrację z SQLite na PostgreSQL przy >1000 użytkowników

@@ -21,7 +21,11 @@ let isNavigating = false;
 
 function getRoute() {
   const hash = window.location.hash.slice(1);
-  if (hash) return hash;
+  if (hash) {
+    // Normalize hash to route key (about -> /about)
+    const normalized = hash.startsWith('/') ? hash : '/' + hash;
+    return normalized;
+  }
   const path = window.location.pathname;
   return path === '/' ? '/' : path;
 }
